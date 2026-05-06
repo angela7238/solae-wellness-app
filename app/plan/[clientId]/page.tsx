@@ -44,6 +44,9 @@ function PlanInner() {
   const [client, setClient] = useState<ClientRow | null>(null);
   const [scanDate, setScanDate] = useState<string>("");
   const [scanNotes, setScanNotes] = useState<string>("");
+  const [compareScanId, setCompareScanId] = useState<string>("");
+  const [coachNotes, setCoachNotes] = useState<string>("");
+  const [notesSaveState, setNotesSaveState] = useState<"idle" | "saving" | "saved">("idle");
   const [error, setError] = useState<string | null>(null);
   const [loaded, setLoaded] = useState(false);
 
@@ -82,6 +85,8 @@ function PlanInner() {
 
         setScanDate(compareScan.scan_date);
         setScanNotes(compareScan.notes ?? "");
+        setCompareScanId(compareScan.id);
+        setCoachNotes(compareScan.coach_notes ?? "");
 
         const sc =
           baselineScan.id === compareScan.id
@@ -106,6 +111,22 @@ function PlanInner() {
       cancelled = true;
     };
   }, [clientId, baselineParam, compareParam]);
+
+  async function saveCoachNotes(value: string) {
+    if (!compareScanId) return;
+    setNotesSaveState("saving");
+    try {
+      await fetch(`/api/scans/${compareScanId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ coach_notes: value }),
+      });
+      setNotesSaveState("saved");
+      setTimeout(() => setNotesSaveState("idle"), 2000);
+    } catch {
+      setNotesSaveState("idle");
+    }
+  }
 
   if (!loaded) {
     return (
@@ -309,12 +330,22 @@ function PlanInner() {
         icon={<ListChecks className="w-6 h-6 text-gold" />}
         title="Coach Notes"
       >
-        <div className="bg-[var(--solae-bg-card)] border border-[var(--solae-border-subtle)] rounded-lg p-5 min-h-32 text-sm">
-          {scanNotes ? (
-            <p className="text-[var(--solae-text)] whitespace-pre-wrap">{scanNotes}</p>
-          ) : (
-            <p className="text-[var(--solae-text-faint)] italic">No notes added for this session.</p>
+        <div className="relative">
+          <textarea
+            className="w-full bg-[var(--solae-bg-card)] border border-[var(--solae-border-subtle)] rounded-lg p-5 min-h-32 text-sm text-[var(--solae-text)] resize-y focus:outline-none focus:border-[var(--solae-gold-dim)] print:hidden"
+            placeholder="Type your coach notes for this client here…"
+            value={coachNotes}
+            onChange={(e) => setCoachNotes(e.target.value)}
+            onBlur={(e) => void saveCoachNotes(e.target.value)}
+          />
+          {notesSaveState !== "idle" && (
+            <div className="absolute bottom-3 right-3 text-[10px] text-[var(--solae-text-faint)] print:hidden">
+              {notesSaveState === "saving" ? "Saving…" : "Saved ✓"}
+            </div>
           )}
+          <div className="hidden print:block whitespace-pre-wrap text-sm text-[var(--solae-text)] bg-[var(--solae-bg-card)] border border-[var(--solae-border-subtle)] rounded-lg p-5 min-h-32">
+            {coachNotes || ""}
+          </div>
         </div>
       </Section>
 

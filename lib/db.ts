@@ -168,6 +168,18 @@ export async function updateScanNotes(
   if (error) throw error;
 }
 
+export async function updateScanCoachNotes(
+  scanId: string,
+  coachNotes: string,
+): Promise<void> {
+  const supabase = createServerSupabase();
+  const { error } = await supabase
+    .from("scans")
+    .update({ coach_notes: coachNotes || null })
+    .eq("id", scanId);
+  if (error) throw error;
+}
+
 export async function saveSupplementEvaluation(input: {
   clientId: string;
   productName: string;

@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { updateScanNotes } from "@/lib/db";
+import { updateScanNotes, updateScanCoachNotes } from "@/lib/db";
 
 export async function PATCH(
   req: Request,
@@ -7,11 +7,16 @@ export async function PATCH(
 ) {
   try {
     const { id } = await params;
-    const body = (await req.json()) as { notes?: string };
-    if (typeof body.notes !== "string") {
-      return NextResponse.json({ error: "notes must be a string" }, { status: 400 });
+    const body = (await req.json()) as { notes?: string; coach_notes?: string };
+
+    if (typeof body.notes === "string") {
+      await updateScanNotes(id, body.notes);
+    } else if (typeof body.coach_notes === "string") {
+      await updateScanCoachNotes(id, body.coach_notes);
+    } else {
+      return NextResponse.json({ error: "notes or coach_notes must be a string" }, { status: 400 });
     }
-    await updateScanNotes(id, body.notes);
+
     return NextResponse.json({ ok: true });
   } catch (e) {
     return NextResponse.json(

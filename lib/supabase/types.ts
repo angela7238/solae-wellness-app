@@ -35,6 +35,7 @@ export interface ScanRow {
   scan_date: string; // ISO date YYYY-MM-DD
   parsed_data: ParsedScan;
   notes: string | null;
+  coach_notes: string | null;
   uploaded_at: string;
 }
 
