@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import { useParams, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import {
@@ -31,7 +31,7 @@ function fmtDate(iso: string): string {
   return `${parseInt(m, 10)}/${parseInt(d, 10)}/${y}`;
 }
 
-export default function PlanPage() {
+function PlanInner() {
   const params = useParams<{ clientId: string }>();
   const searchParams = useSearchParams();
   const clientId = params.clientId;
@@ -43,6 +43,7 @@ export default function PlanPage() {
     useState<PlanRecommendation | null>(null);
   const [client, setClient] = useState<ClientRow | null>(null);
   const [scanDate, setScanDate] = useState<string>("");
+  const [scanNotes, setScanNotes] = useState<string>("");
   const [error, setError] = useState<string | null>(null);
   const [loaded, setLoaded] = useState(false);
 
@@ -80,6 +81,7 @@ export default function PlanPage() {
           sortedScans[sortedScans.length - 1];
 
         setScanDate(compareScan.scan_date);
+        setScanNotes(compareScan.notes ?? "");
 
         const sc =
           baselineScan.id === compareScan.id
@@ -307,9 +309,12 @@ export default function PlanPage() {
         icon={<ListChecks className="w-6 h-6 text-gold" />}
         title="Coach Notes"
       >
-        <div className="bg-[var(--solae-bg-card)] border border-[var(--solae-border-subtle)] rounded-lg p-5 min-h-32 text-[var(--solae-text-faint)] italic text-sm">
-          [ Space for Angela to add personalized notes for this client. Edit in
-          a future build, or write notes in pen on the printed copy. ]
+        <div className="bg-[var(--solae-bg-card)] border border-[var(--solae-border-subtle)] rounded-lg p-5 min-h-32 text-sm">
+          {scanNotes ? (
+            <p className="text-[var(--solae-text)] whitespace-pre-wrap">{scanNotes}</p>
+          ) : (
+            <p className="text-[var(--solae-text-faint)] italic">No notes added for this session.</p>
+          )}
         </div>
       </Section>
 
@@ -323,6 +328,14 @@ export default function PlanPage() {
         </div>
       </Section>
     </div>
+  );
+}
+
+export default function PlanPage() {
+  return (
+    <Suspense>
+      <PlanInner />
+    </Suspense>
   );
 }
 
