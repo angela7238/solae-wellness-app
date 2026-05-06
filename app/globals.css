@@ -1,0 +1,137 @@
+@import "tailwindcss";
+
+:root {
+  /* Solae brand palette */
+  --solae-bg: #0a0c10;
+  --solae-bg-card: #15181f;
+  --solae-bg-card-hover: #1a1e27;
+  --solae-border: #2a2f3a;
+  --solae-border-subtle: #20252e;
+
+  --solae-gold: #d4a24c;
+  --solae-gold-light: #f4d58d;
+  --solae-gold-dim: #8b6f33;
+
+  --solae-text: #f5f1e8;
+  --solae-text-muted: #9ca0aa;
+  --solae-text-faint: #5a5e68;
+
+  /* status */
+  --solae-green: #22c55e;
+  --solae-yellow: #eab308;
+  --solae-blue: #3b82f6;
+  --solae-red: #ef4444;
+}
+
+@theme inline {
+  --color-bg: var(--solae-bg);
+  --color-card: var(--solae-bg-card);
+  --color-card-hover: var(--solae-bg-card-hover);
+  --color-border: var(--solae-border);
+  --color-border-subtle: var(--solae-border-subtle);
+  --color-gold: var(--solae-gold);
+  --color-gold-light: var(--solae-gold-light);
+  --color-gold-dim: var(--solae-gold-dim);
+  --color-text: var(--solae-text);
+  --color-text-muted: var(--solae-text-muted);
+  --color-text-faint: var(--solae-text-faint);
+  --color-status-green: var(--solae-green);
+  --color-status-yellow: var(--solae-yellow);
+  --color-status-blue: var(--solae-blue);
+  --color-status-red: var(--solae-red);
+
+  --font-cinzel: var(--font-cinzel);
+  --font-cormorant: var(--font-cormorant);
+  --font-sans: var(--font-inter);
+}
+
+html,
+body {
+  background: var(--solae-bg);
+  color: var(--solae-text);
+  font-family: var(--font-inter), system-ui, sans-serif;
+}
+
+body {
+  min-height: 100vh;
+}
+
+/* Subtle background texture (matches the original dashboard's slightly-textured feel) */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  background:
+    radial-gradient(ellipse at top, rgba(212, 162, 76, 0.05) 0%, transparent 60%),
+    radial-gradient(ellipse at bottom right, rgba(212, 162, 76, 0.03) 0%, transparent 50%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* Utility classes */
+.font-display {
+  font-family: var(--font-cormorant), Georgia, serif;
+}
+
+.font-brand {
+  font-family: var(--font-cinzel), Georgia, serif;
+  letter-spacing: 0.15em;
+}
+
+.text-gold {
+  color: var(--solae-gold);
+}
+
+.text-gold-light {
+  color: var(--solae-gold-light);
+}
+
+/* ============================================
+   Print styles — clean PDF output
+   ============================================ */
+@media print {
+  /* Hide app chrome that doesn't belong on a printed report */
+  header,
+  button,
+  .no-print {
+    display: none !important;
+  }
+
+  /* Background swap: dark theme is unreadable on paper */
+  html,
+  body {
+    background: white !important;
+    color: black !important;
+  }
+  body::before {
+    display: none !important;
+  }
+
+  /* Card backgrounds → white with subtle borders */
+  [class*="bg-[var(--solae-bg-card)]"],
+  [style*="bg-[var(--solae-bg-card)]"] {
+    background: white !important;
+    border: 1px solid #ddd !important;
+    box-shadow: none !important;
+  }
+
+  /* Keep gold accents (titles), but darken muted text for legibility */
+  .text-gold,
+  .text-gold-light {
+    color: #b88a30 !important;
+  }
+
+  /* Encourage page breaks between major sections */
+  section {
+    break-inside: avoid;
+    page-break-inside: avoid;
+    margin-bottom: 1.5rem;
+  }
+
+  /* Default sans for print body */
+  main {
+    font-size: 11pt;
+    max-width: none !important;
+    padding: 0 !important;
+  }
+}
