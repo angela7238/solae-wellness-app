@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useMemo } from "react";
+import { Suspense, useEffect, useState, useMemo } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { Upload } from "lucide-react";
@@ -28,7 +28,7 @@ import { WellnessRadar } from "@/components/dashboard/WellnessRadar";
 import { TimelineTrends } from "@/components/dashboard/TimelineTrends";
 import type { RadarPoint } from "@/lib/radar";
 
-export default function DashboardPage() {
+function DashboardInner() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const clientId = searchParams.get("client");
@@ -297,5 +297,13 @@ export default function DashboardPage() {
         <TimelineTrends scans={scans} sex={c.client.sex} />
       )}
     </div>
+  );
+}
+
+export default function DashboardPage() {
+  return (
+    <Suspense>
+      <DashboardInner />
+    </Suspense>
   );
 }
