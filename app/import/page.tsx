@@ -45,8 +45,19 @@ export default function ImportScanPage() {
         body: formData,
       });
       if (!res.ok) {
-        const err = await res.json().catch(() => ({}));
-        throw new Error(err.error || `Parse failed (HTTP ${res.status})`);
+        const text = await res.text();
+        let parsed: { error?: string; detail?: string } = {};
+        try {
+          parsed = JSON.parse(text);
+        } catch {
+          // Non-JSON response (e.g. Netlify function crashed before our handler ran).
+          // Surface the raw body so we can see what the platform actually returned.
+          throw new Error(
+            `HTTP ${res.status} — non-JSON response: ${text.slice(0, 400) || "(empty body)"}`,
+          );
+        }
+        const main = parsed.error || `Parse failed (HTTP ${res.status})`;
+        throw new Error(parsed.detail ? `${main} — ${parsed.detail}` : main);
       }
       const result = (await res.json()) as ParseResponse;
       setStatus({ kind: "success", fileName: file.name, result });

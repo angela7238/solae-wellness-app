@@ -30,5 +30,9 @@
     ".next/dev/types/**/*.ts",
     "**/*.mts"
   ],
-  "exclude": ["node_modules"]
+  "exclude": [
+    "node_modules",
+    "lib/parser/debug-extract.ts",
+    "lib/parser/test-parser.ts"
+  ]
 }
