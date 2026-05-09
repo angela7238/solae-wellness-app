@@ -92,15 +92,27 @@ function splitSections(text: string): { system: string; lines: string[] }[] {
   return sections;
 }
 
-/** Merge any line ending in " -" with the following non-empty line.
- *  Result: each marker row has its full "min - max value" tuple on one line. */
+/** Merge marker rows that have been split across multiple lines.
+ *
+ *  Handles two source shapes:
+ *    pdf-parse style (2-line):  "Name 48.264 -" / "65.371 61.706"
+ *    y-position style (4-line): "Name" / "48.264 -" / "65.371" / "61.706"
+ *
+ *  Strategy: first pass joins any line ending in " -" with the next non-empty
+ *  line (handles the 2-line shape). Second pass greedily appends a trailing
+ *  single-number line when a row ends with "min - max" but no value yet
+ *  (handles the 4-line shape). Result: each marker row has its full
+ *  "min - max value" tuple on a single line. */
 function joinDashLines(lines: string[]): string[] {
-  const out: string[] = [];
+  const NUM_ONLY_RE = new RegExp(`^${NUM}$`);
+  const ENDS_RANGE_NO_VALUE_RE = new RegExp(`(?:^|\\s)${NUM}\\s*-\\s*${NUM}\\s*$`);
+
+  // Pass 1: join "...-" lines with the next non-empty line.
+  const pass1: string[] = [];
   let i = 0;
   while (i < lines.length) {
     let line = lines[i];
     while (/\S+\s*-\s*$/.test(line) && i + 1 < lines.length) {
-      // Find the next non-empty line
       let j = i + 1;
       while (j < lines.length && !lines[j].trim()) j++;
       if (j >= lines.length) break;
@@ -108,8 +120,26 @@ function joinDashLines(lines: string[]): string[] {
       line = line.replace(/\s*-\s*$/, " - ") + next;
       i = j;
     }
-    out.push(line);
+    pass1.push(line);
     i++;
+  }
+
+  // Pass 2: when a line ends in "min - max" with no value, pull the next
+  // non-empty single-number line as the value.
+  const out: string[] = [];
+  let k = 0;
+  while (k < pass1.length) {
+    let line = pass1[k];
+    if (ENDS_RANGE_NO_VALUE_RE.test(line) && !FULL_ROW_RE.test(line)) {
+      let j = k + 1;
+      while (j < pass1.length && !pass1[j].trim()) j++;
+      if (j < pass1.length && NUM_ONLY_RE.test(pass1[j].trim())) {
+        line = line + " " + pass1[j].trim();
+        k = j;
+      }
+    }
+    out.push(line);
+    k++;
   }
   return out;
 }
