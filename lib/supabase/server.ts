@@ -7,17 +7,17 @@ import "server-only";
 import { createClient } from "@supabase/supabase-js";
 
 const url = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-
-if (!serviceRoleKey) {
-  // Loud failure beats silently falling back to the (now powerless) anon key,
-  // which would surface as confusing permission errors after RLS lockdown.
-  throw new Error(
-    "SUPABASE_SERVICE_ROLE_KEY is not set. Add it to .env.local and your Netlify environment.",
-  );
-}
 
 export function createServerSupabase() {
+  const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  if (!serviceRoleKey) {
+    // Checked lazily (not at module load) so importing this file never throws
+    // during the build. Fails loud at request time if the key is missing —
+    // better than silently falling back to the now-powerless anon key.
+    throw new Error(
+      "SUPABASE_SERVICE_ROLE_KEY is not set. Add it to .env.local and your Netlify environment.",
+    );
+  }
   return createClient(url, serviceRoleKey, {
     auth: { persistSession: false },
   });
