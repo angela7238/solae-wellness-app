@@ -64,22 +64,18 @@ create index if not exists supp_eval_created_idx on public.supplement_evaluation
 alter table public.supplement_evaluations add column if not exists brand_name text;
 
 -- ============================================
--- Row-Level Security (open for MVP, lock down in Phase 1D)
+-- Row-Level Security
 -- ============================================
-alter table public.clients enable row level security;
-alter table public.scans   enable row level security;
-
--- Drop old policies if re-running
-drop policy if exists clients_anon_all on public.clients;
-drop policy if exists scans_anon_all on public.scans;
-drop policy if exists supp_eval_anon_all on public.supplement_evaluations;
-
--- MVP: allow anon (publishable key) full access. Replace with auth-bound
--- policies in Phase 1D when login is added.
-create policy clients_anon_all on public.clients for all to anon
-  using (true) with check (true);
-create policy scans_anon_all on public.scans for all to anon
-  using (true) with check (true);
+-- RLS is enabled with NO anon policies. The server accesses the database with
+-- the secret service-role key (SUPABASE_SERVICE_ROLE_KEY), which bypasses RLS.
+-- The browser never talks to Supabase directly — it only calls our Next.js API
+-- routes — so the anon role needs no access. Denying anon closes public access
+-- to client health data.
+alter table public.clients                enable row level security;
+alter table public.scans                  enable row level security;
 alter table public.supplement_evaluations enable row level security;
-create policy supp_eval_anon_all on public.supplement_evaluations for all to anon
-  using (true) with check (true);
+
+-- Remove any legacy permissive anon policies (safe if they don't exist).
+drop policy if exists clients_anon_all   on public.clients;
+drop policy if exists scans_anon_all     on public.scans;
+drop policy if exists supp_eval_anon_all on public.supplement_evaluations;
