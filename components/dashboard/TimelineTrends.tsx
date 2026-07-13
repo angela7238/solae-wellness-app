@@ -81,6 +81,13 @@ export function TimelineTrends({ scans, sex }: Props) {
           const delta = last - first;
           const trendColor =
             delta > 1 ? "#22c55e" : delta < -1 ? "#ef4444" : "#9ca0aa";
+          // Last-cycle change: latest point vs the one before it. Only distinct
+          // from the overall delta once there are 3+ scans.
+          const prev = data[data.length - 2]?.value ?? first;
+          const cycleDelta = last - prev;
+          const cycleColor =
+            cycleDelta > 1 ? "#22c55e" : cycleDelta < -1 ? "#ef4444" : "#9ca0aa";
+          const showCycle = data.length >= 3;
 
           return (
             <div
@@ -99,9 +106,19 @@ export function TimelineTrends({ scans, sex }: Props) {
                   {delta.toFixed(1)}%
                 </div>
               </div>
-              <div className="text-xs text-[var(--solae-text-faint)] mb-3">
+              <div
+                className={`text-xs text-[var(--solae-text-faint)] ${
+                  showCycle ? "mb-1" : "mb-3"
+                }`}
+              >
                 {first.toFixed(0)}% → {last.toFixed(0)}%
               </div>
+              {showCycle && (
+                <div className="text-[11px] mb-3" style={{ color: cycleColor }}>
+                  {cycleDelta > 0 ? "+" : ""}
+                  {cycleDelta.toFixed(1)}% since last scan
+                </div>
+              )}
               <div className="h-20">
                 {mounted && (
                   <ResponsiveContainer width="100%" height="100%">

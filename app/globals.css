@@ -121,6 +121,13 @@ body::before {
     color: #b88a30 !important;
   }
 
+  /* Darken faint/muted labels so fine print (e.g. the "since last scan"
+     lines) stays legible on white paper. */
+  :root {
+    --solae-text-faint: #555 !important;
+    --solae-text-muted: #333 !important;
+  }
+
   /* Encourage page breaks between major sections */
   section {
     break-inside: avoid;
