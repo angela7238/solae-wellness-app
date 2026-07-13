@@ -15,6 +15,7 @@ import type { ParsedScan } from "@/lib/parser/parseScan";
 import type { ClientRow, ScanRow } from "@/lib/supabase/types";
 import { ScanHeader } from "@/components/dashboard/ScanHeader";
 import { HeroStats } from "@/components/dashboard/HeroStats";
+import type { SinceLastStats } from "@/components/dashboard/HeroStats";
 import { HealingPhase } from "@/components/dashboard/HealingPhase";
 import { TransformationSnapshot } from "@/components/dashboard/TransformationSnapshot";
 import { ScanNotes } from "@/components/dashboard/ScanNotes";
@@ -43,6 +44,7 @@ function DashboardInner() {
   const [compareParsed, setCompareParsed] = useState<ParsedScan | null>(null);
   const [compareScanId, setCompareScanId] = useState<string | null>(null);
   const [compareScanNotes, setCompareScanNotes] = useState<string>("");
+  const [sinceLast, setSinceLast] = useState<SinceLastStats | null>(null);
   const [loaded, setLoaded] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -52,6 +54,7 @@ function DashboardInner() {
     async function load() {
       setLoaded(false);
       setError(null);
+      setSinceLast(null);
 
       if (clientId) {
         try {
@@ -93,6 +96,7 @@ function DashboardInner() {
             setCompareParsed(baselineScan.parsed_data);
             setCompareScanId(baselineScan.id);
             setCompareScanNotes(baselineScan.notes ?? "");
+            setSinceLast(null);
           } else {
             const sc = buildComparison(
               data.client,
@@ -111,6 +115,45 @@ function DashboardInner() {
             setCompareParsed(compareScan.parsed_data);
             setCompareScanId(compareScan.id);
             setCompareScanNotes(compareScan.notes ?? "");
+
+            // "Since last scan": compare the scan immediately before the compare
+            // scan against the compare scan. Only meaningful when that previous
+            // scan is distinct from the baseline (otherwise it equals the overall
+            // numbers already shown).
+            const compareIdx = sortedScans.findIndex(
+              (s) => s.id === compareScan.id,
+            );
+            const previousScan =
+              compareIdx > 0 ? sortedScans[compareIdx - 1] : null;
+            if (previousScan && previousScan.id !== baselineScan.id) {
+              const cycle = buildComparison(
+                data.client,
+                previousScan.parsed_data,
+                compareScan.parsed_data,
+              );
+              const prevMs = new Date(
+                previousScan.scan_date + "T00:00:00",
+              ).getTime();
+              const compMs = new Date(
+                compareScan.scan_date + "T00:00:00",
+              ).getTime();
+              const daysBetween = Math.max(
+                0,
+                Math.round((compMs - prevMs) / 86_400_000),
+              );
+              setSinceLast({
+                previousDate: new Date(
+                  previousScan.scan_date + "T00:00:00",
+                ).toLocaleDateString("en-US"),
+                daysBetween,
+                overallImprovement: cycle.overallImprovement,
+                yearsRecovered: cycle.yearsRecovered,
+                systemsMovedToGreen: cycle.systemsMovedToGreen,
+                markersMovedIntoRange: cycle.markersMovedIntoRange,
+              });
+            } else {
+              setSinceLast(null);
+            }
           }
           setLoaded(true);
         } catch (e) {
@@ -255,6 +298,7 @@ function DashboardInner() {
         totalMarkers={c.totalMarkers}
         currentMarkersInRange={c.currentMarkersInRange}
         singleScan={single}
+        sinceLast={sinceLast}
       />
 
       <HealingPhase current={c.currentPhase} secondary={c.secondaryPhase} />

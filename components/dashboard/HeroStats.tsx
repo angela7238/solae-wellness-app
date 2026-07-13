@@ -19,6 +19,38 @@ function improvementSubtext(pct: number): string {
   return "A dip can signal stress, illness, or that protocols need adjustment.";
 }
 
+import type { ReactNode } from "react";
+
+/** Previous-scan → latest-scan deltas, surfaced as a "since last scan" line
+ *  under each hero number. Null when there's no distinct previous scan. */
+export interface SinceLastStats {
+  /** Formatted date of the previous scan, e.g. "6/12/2026". */
+  previousDate: string;
+  daysBetween: number;
+  overallImprovement: number;
+  yearsRecovered: number;
+  systemsMovedToGreen: number;
+  markersMovedIntoRange: number;
+}
+
+/** Small divided footer block used to show the "since last scan" delta. */
+function SinceLastBlock({
+  sinceLast,
+  children,
+}: {
+  sinceLast: SinceLastStats;
+  children: ReactNode;
+}) {
+  return (
+    <div className="mt-5 pt-4 border-t border-[var(--solae-border)] w-full text-center">
+      <div className="text-[var(--solae-text-faint)] text-[10px] tracking-widest uppercase mb-1.5">
+        Since last scan · {sinceLast.previousDate} ({sinceLast.daysBetween}d)
+      </div>
+      {children}
+    </div>
+  );
+}
+
 interface Props {
   overallImprovement: number;
   startingBodyAge: number;
@@ -33,6 +65,8 @@ interface Props {
   currentMarkersInRange: number;
   /** True for first/single-scan view: relabel cards to show current state, not change. */
   singleScan?: boolean;
+  /** Optional previous-scan → latest deltas. Null when no distinct previous scan exists. */
+  sinceLast?: SinceLastStats | null;
 }
 
 export function HeroStats({
@@ -48,6 +82,7 @@ export function HeroStats({
   totalMarkers,
   currentMarkersInRange,
   singleScan,
+  sinceLast,
 }: Props) {
   // Suppress unused-warning for the system-level current count — we keep the
   // value in the data model in case a later iteration wants to surface it.
@@ -100,6 +135,22 @@ export function HeroStats({
             ? "Score = % of all biological markers in normal range across this scan."
             : improvementSubtext(overallImprovement)}
         </div>
+        {!singleScan && sinceLast && (
+          <SinceLastBlock sinceLast={sinceLast}>
+            <div
+              className={`font-display text-2xl ${
+                sinceLast.overallImprovement > 0
+                  ? "text-[var(--solae-status-green)]"
+                  : sinceLast.overallImprovement < 0
+                    ? "text-[var(--solae-status-red)]"
+                    : "text-[var(--solae-text-muted)]"
+              }`}
+            >
+              {sinceLast.overallImprovement >= 0 ? "+" : ""}
+              {sinceLast.overallImprovement.toFixed(1)}%
+            </div>
+          </SinceLastBlock>
+        )}
       </div>
 
       {/* Functional Body Age / Current Age */}
@@ -136,6 +187,24 @@ export function HeroStats({
             </div>
           </>
         )}
+        {!singleScan && sinceLast && (
+          <SinceLastBlock sinceLast={sinceLast}>
+            <div className="text-sm">
+              {sinceLast.overallImprovement < 0 ? (
+                <span className="text-[var(--solae-status-red)]">
+                  Slight dip this cycle
+                </span>
+              ) : sinceLast.yearsRecovered > 0 ? (
+                <span className="text-[var(--solae-status-green)]">
+                  <span className="font-semibold">{sinceLast.yearsRecovered}</span>{" "}
+                  yr{sinceLast.yearsRecovered === 1 ? "" : "s"} recovered
+                </span>
+              ) : (
+                <span className="text-[var(--solae-text-muted)]">Holding steady</span>
+              )}
+            </div>
+          </SinceLastBlock>
+        )}
         {singleScan && (
           <div className="text-[var(--solae-text-faint)] text-xs mt-4 max-w-xs">
             Functional body age tracking unlocks once you have a follow-up scan to compare against.
@@ -168,6 +237,22 @@ export function HeroStats({
               {currentMarkersInRange} of {totalMarkers} markers currently in range
             </div>
           </div>
+        )}
+        {!singleScan && sinceLast && (
+          <SinceLastBlock sinceLast={sinceLast}>
+            {sinceLast.systemsMovedToGreen > 0 || sinceLast.markersMovedIntoRange > 0 ? (
+              <div className="text-sm text-[var(--solae-status-green)]">
+                <span className="font-semibold">+{sinceLast.systemsMovedToGreen}</span>{" "}
+                to green ·{" "}
+                <span className="font-semibold">+{sinceLast.markersMovedIntoRange}</span>{" "}
+                markers into range
+              </div>
+            ) : (
+              <div className="text-sm text-[var(--solae-text-muted)]">
+                No new systems to green this cycle
+              </div>
+            )}
+          </SinceLastBlock>
         )}
         {singleScan && (
           <div className="flex flex-col items-center gap-2">
