@@ -36,6 +36,8 @@ export interface ScanRow {
   parsed_data: ParsedScan;
   notes: string | null;
   coach_notes: string | null;
+  /** Product names the coach checked off as given to the client at this visit. */
+  products_given: string[] | null;
   uploaded_at: string;
 }
 

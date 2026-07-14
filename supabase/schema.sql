@@ -37,6 +37,9 @@ create table if not exists public.scans (
 -- Migration: add notes column if upgrading from an older schema
 alter table public.scans add column if not exists notes text;
 
+-- Products the coach checked off as "given" to the client at this visit.
+alter table public.scans add column if not exists products_given jsonb not null default '[]'::jsonb;
+
 create index if not exists scans_client_id_idx on public.scans (client_id);
 create index if not exists scans_client_date_idx on public.scans (client_id, scan_date desc);
 

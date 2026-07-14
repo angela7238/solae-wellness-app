@@ -9,7 +9,7 @@ import type { ScanComparison, Phase } from "@/lib/types";
 
 export interface RecommendedProduct {
   name: string;
-  role: "core" | "optional";
+  role: "core" | "optional" | "targeted";
   why: string;
 }
 
@@ -28,6 +28,8 @@ export interface PlanRecommendation {
   coreProducts: RecommendedProduct[];
   /** Up to 2 optional add-ons */
   optionalProducts: RecommendedProduct[];
+  /** Targeted, scan-specific support (deficiency- and sex-hormone-driven) */
+  targetedProducts: RecommendedProduct[];
   /** Why this phase was picked, in plain language */
   phaseRationale: string;
   /** 30-day daily routine, templated by phase */
@@ -77,7 +79,8 @@ const PRODUCT_WHY: Record<string, string> = {
     "Protein, lean muscle, and satiety support. Helpful for metabolic and weight goals.",
   "VitalAge Collagen":
     "Skin, hair, nails, joints, and connective-tissue aging support.",
-  "V-NRGY": "Energy, focus, and metabolic drive — lifestyle support.",
+  "V-NRGY":
+    "Clean energy and mental focus. Supports natural energy without jitters or crash, mental clarity and motivation, and mood balance under stress. Includes B vitamins (B1, B3, B6, B7, B12). Contains natural caffeine — use with care if caffeine-sensitive.",
   "V-Italboost":
     "Activation and energy support — helpful in the early restore phase.",
   "V-Thermokafe":
@@ -86,6 +89,23 @@ const PRODUCT_WHY: Record<string, string> = {
     "Focus and gut-brain support. Caffeine-sensitive clients should use with care.",
   "V-Lovkafe":
     "Vitality and stamina support. Caffeine-sensitive clients should use with care.",
+  // --- Official catalog additions (2026-07-13) ---
+  "Nourish+":
+    "Complete plant protein with 50 billion CFU probiotics, plus fruits, greens, digestive enzymes, and antioxidant support.",
+  "Performance+":
+    "Supports energy production, muscle recovery, and hydration for physical performance.",
+  "LatteKafe":
+    "Natural energy and focus from functional mushrooms and MCTs. Contains caffeine — use with care if caffeine-sensitive.",
+  "Smart Biotics":
+    "Supports healthy gut flora and nutrient absorption, plus memory and cognitive performance.",
+  "D-Fenz":
+    "Daily wellness — supports immune health, healthy digestion with prebiotic fiber, and mental and physical performance.",
+  // Provisional wording from Angela's product descriptions — replace with
+  // official sheet text when the All Product Info Sheets arrive.
+  "V-Harmony":
+    "Women's hormone support. Supports hormonal balance, menstrual regularity, mood, healthy energy, libido, and feminine microbiome wellness.",
+  "V-Prime":
+    "Men's vitality support. Supports healthy testosterone already within the normal range, vitality, libido, physical performance, prostate health, and bone balance.",
 };
 
 /* --------------------------- Duplication helpers --------------------------- */
@@ -192,6 +212,21 @@ const SYSTEM_TRIGGERS: SystemTrigger[] = [
     product: "V-Control",
     reason: "Endocrine stress detected — V-Control bridges nervous system and metabolic balance.",
   },
+];
+
+/* ----------------------- Targeted (scan-specific) support ------------------- */
+// Sex-hormone systems, matched against comparison.systems[].name (see lib/radar.ts).
+const WOMENS_HEALTH_SYSTEMS = [
+  "Female Hormone",
+  "Gynecology",
+  "Breast",
+  "Menstrual cycle",
+];
+const MENS_HEALTH_SYSTEMS = [
+  "Male Hormone",
+  "Male Sexual Function",
+  "Sperm and semen",
+  "Prostate",
 ];
 
 /* ------------------------------ Top priorities ----------------------------- */
@@ -341,6 +376,49 @@ export function buildRecommendations(c: ScanComparison): PlanRecommendation {
   const coreProducts = products.filter((p) => p.role === "core");
   const optionalProducts = products.filter((p) => p.role === "optional");
 
+  // 4. Targeted, scan-specific support — its own bucket (not subject to the
+  //    core/optional caps), sex-aware. Deficiency- and hormone-driven.
+  const targetedProducts: RecommendedProduct[] = [];
+  const addTargeted = (name: string, why: string) => {
+    if (picked.has(name)) return;
+    if (isAlreadyTaking(name, stack)) return;
+    if (isCoveredByNonSolae(name, ns)) return;
+    picked.add(name);
+    targetedProducts.push({
+      name,
+      role: "targeted",
+      why: why || PRODUCT_WHY[name] || "",
+    });
+  };
+
+  // Low B vitamins → V-NRGY (its label includes B1/B3/B6/B7/B12 + energy support)
+  const lowBVitamins = c.needsAttention.some((m) => /vitamin\s*b/i.test(m.name));
+  if (lowBVitamins) {
+    addTargeted(
+      "V-NRGY",
+      "Your scan shows low B-vitamin markers. V-NRGY provides B-vitamin and clean-energy support.",
+    );
+  }
+
+  // Sex-aware hormone support — only when the matching systems are below optimal.
+  const systemBelowOptimal = (names: string[]) =>
+    c.systems.some(
+      (s) =>
+        names.includes(s.name) && (s.status === "red" || s.status === "yellow"),
+    );
+  if (c.client.sex === "Female" && systemBelowOptimal(WOMENS_HEALTH_SYSTEMS)) {
+    addTargeted(
+      "V-Harmony",
+      "Women's Health systems are showing below optimal — V-Harmony supports hormonal balance.",
+    );
+  }
+  if (c.client.sex === "Male" && systemBelowOptimal(MENS_HEALTH_SYSTEMS)) {
+    addTargeted(
+      "V-Prime",
+      "Men's Health systems are showing below optimal — V-Prime supports male vitality and hormone balance.",
+    );
+  }
+
   // Acknowledge currently-taking
   const continueCurrentSupplements: string[] = [];
   for (const phaseKey of ["detox", "repair", "restore", "nourish"] as const) {
@@ -363,6 +441,7 @@ export function buildRecommendations(c: ScanComparison): PlanRecommendation {
     continueCurrentSupplements,
     coreProducts,
     optionalProducts,
+    targetedProducts,
     phaseRationale: PHASE_DESCRIPTIONS[phase],
     dailyRoutine: ROUTINE_BY_PHASE[phase],
     expectedResults: EXPECTED_RESULTS_BY_PHASE[phase],

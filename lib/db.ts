@@ -180,6 +180,19 @@ export async function updateScanCoachNotes(
   if (error) throw error;
 }
 
+/** Save the list of products the coach checked off as "given" at this visit. */
+export async function updateScanProductsGiven(
+  scanId: string,
+  productsGiven: string[],
+): Promise<void> {
+  const supabase = createServerSupabase();
+  const { error } = await supabase
+    .from("scans")
+    .update({ products_given: productsGiven })
+    .eq("id", scanId);
+  if (error) throw error;
+}
+
 export async function saveSupplementEvaluation(input: {
   clientId: string;
   productName: string;

@@ -47,6 +47,7 @@ function PlanInner() {
   const [compareScanId, setCompareScanId] = useState<string>("");
   const [coachNotes, setCoachNotes] = useState<string>("");
   const [notesSaveState, setNotesSaveState] = useState<"idle" | "saving" | "saved">("idle");
+  const [productsGiven, setProductsGiven] = useState<string[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [loaded, setLoaded] = useState(false);
 
@@ -87,6 +88,7 @@ function PlanInner() {
         setScanNotes(compareScan.notes ?? "");
         setCompareScanId(compareScan.id);
         setCoachNotes(compareScan.coach_notes ?? "");
+        setProductsGiven(compareScan.products_given ?? []);
 
         const sc =
           baselineScan.id === compareScan.id
@@ -126,6 +128,22 @@ function PlanInner() {
     } catch {
       setNotesSaveState("idle");
     }
+  }
+
+  function toggleProductGiven(product: string) {
+    if (!compareScanId) return;
+    setProductsGiven((prev) => {
+      const next = prev.includes(product)
+        ? prev.filter((p) => p !== product)
+        : [...prev, product];
+      // Persist to this visit's scan (fire-and-forget, like coach notes).
+      void fetch(`/api/scans/${compareScanId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ products_given: next }),
+      });
+      return next;
+    });
   }
 
   if (!loaded) {
@@ -255,10 +273,42 @@ function PlanInner() {
       >
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
           {recommendation.coreProducts.map((p) => (
-            <ProductCard key={p.name} product={p.name} role="Core" why={p.why} />
+            <ProductCard
+              key={p.name}
+              product={p.name}
+              role="Core"
+              why={p.why}
+              given={productsGiven.includes(p.name)}
+              onToggle={() => toggleProductGiven(p.name)}
+            />
           ))}
         </div>
       </Section>
+
+      {/* Targeted, scan-specific support */}
+      {recommendation.targetedProducts.length > 0 && (
+        <Section
+          icon={<Pill className="w-6 h-6 text-gold" />}
+          title="Targeted Support"
+        >
+          <div className="text-[var(--solae-text-faint)] text-xs mb-3">
+            Based on this scan — deficiency- and hormone-specific support beyond
+            the core stack.
+          </div>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
+            {recommendation.targetedProducts.map((p) => (
+              <ProductCard
+                key={p.name}
+                product={p.name}
+                role="Targeted"
+                why={p.why}
+                given={productsGiven.includes(p.name)}
+                onToggle={() => toggleProductGiven(p.name)}
+              />
+            ))}
+          </div>
+        </Section>
+      )}
 
       {/* Optional add-ons */}
       {recommendation.optionalProducts.length > 0 && (
@@ -277,6 +327,8 @@ function PlanInner() {
                 product={p.name}
                 role="Optional"
                 why={p.why}
+                given={productsGiven.includes(p.name)}
+                onToggle={() => toggleProductGiven(p.name)}
               />
             ))}
           </div>
@@ -396,20 +448,46 @@ function ProductCard({
   product,
   role,
   why,
+  given,
+  onToggle,
 }: {
   product: string;
   role: string;
   why: string;
+  given: boolean;
+  onToggle: () => void;
 }) {
   return (
-    <div className="bg-[var(--solae-bg-card)] border border-[var(--solae-gold-dim)]/40 rounded-lg p-5">
-      <div className="flex items-baseline gap-3 mb-2 flex-wrap">
-        <h3 className="font-display text-xl text-[var(--solae-text)]">
-          {product}
-        </h3>
-        <span className="text-[var(--solae-gold-light)] text-xs uppercase tracking-widest">
-          {role}
-        </span>
+    <div
+      className={`bg-[var(--solae-bg-card)] border rounded-lg p-5 transition-colors ${
+        given
+          ? "border-[var(--solae-status-green)]/50"
+          : "border-[var(--solae-gold-dim)]/40"
+      }`}
+    >
+      <div className="flex items-start justify-between gap-3 mb-2">
+        <div className="flex items-baseline gap-3 flex-wrap">
+          <h3 className="font-display text-xl text-[var(--solae-text)]">
+            {product}
+          </h3>
+          <span className="text-[var(--solae-gold-light)] text-xs uppercase tracking-widest">
+            {role}
+          </span>
+        </div>
+        {/* "Given" checkbox — records what the client actually received this
+            visit. Rendered as a label+checkbox so it survives print (buttons
+            are hidden in print CSS). */}
+        <label className="flex items-center gap-2 shrink-0 cursor-pointer text-xs text-[var(--solae-text-muted)] select-none">
+          <input
+            type="checkbox"
+            checked={given}
+            onChange={onToggle}
+            className="w-4 h-4 accent-[var(--solae-status-green)]"
+          />
+          <span className={given ? "text-[var(--solae-status-green)]" : ""}>
+            {given ? "Given ✓" : "Given?"}
+          </span>
+        </label>
       </div>
       <p className="text-[var(--solae-text-muted)] text-sm leading-relaxed">
         {why}
