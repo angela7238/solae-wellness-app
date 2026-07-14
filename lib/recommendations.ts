@@ -100,6 +100,10 @@ const PRODUCT_WHY: Record<string, string> = {
     "Supports healthy gut flora and nutrient absorption, plus memory and cognitive performance.",
   "D-Fenz":
     "Daily wellness — supports immune health, healthy digestion with prebiotic fiber, and mental and physical performance.",
+  CurcuMax:
+    "Joint and inflammation support. Supports joint health, provides antioxidant support, and supports a healthy inflammatory response.",
+  VitalBoost:
+    "Immune support. Supports the immune system and respiratory wellness, with antioxidant support.",
   // Provisional wording from Angela's product descriptions — replace with
   // official sheet text when the All Product Info Sheets arrive.
   "V-Harmony":
@@ -228,6 +232,13 @@ const MENS_HEALTH_SYSTEMS = [
   "Sperm and semen",
   "Prostate",
 ];
+const IMMUNE_SYSTEMS = ["Immune System", "Human Immunity"];
+const JOINT_SYSTEMS = [
+  "Rheumatoid Bone Disease",
+  "Bone Mineral Density",
+  "Bone Growth Index",
+];
+const AMINO_SYSTEMS = ["Amino Acid"];
 
 /* ------------------------------ Top priorities ----------------------------- */
 
@@ -416,6 +427,26 @@ export function buildRecommendations(c: ScanComparison): PlanRecommendation {
     addTargeted(
       "V-Prime",
       "Men's Health systems are showing below optimal — V-Prime supports male vitality and hormone balance.",
+    );
+  }
+
+  // Deficiency/system-driven targeted picks (sex-neutral).
+  if (systemBelowOptimal(IMMUNE_SYSTEMS)) {
+    addTargeted(
+      "VitalBoost",
+      "Immune markers are showing below optimal — VitalBoost supports immune and respiratory wellness.",
+    );
+  }
+  if (systemBelowOptimal(JOINT_SYSTEMS)) {
+    addTargeted(
+      "CurcuMax",
+      "Joint or bone systems are showing below optimal — CurcuMax supports joint health and a healthy inflammatory response.",
+    );
+  }
+  if (systemBelowOptimal(AMINO_SYSTEMS)) {
+    addTargeted(
+      "Nourish+",
+      "Amino-acid markers are showing below optimal — Nourish+ provides complete plant protein and nutrient support.",
     );
   }
 
