@@ -23,6 +23,13 @@ import { buildRecommendations } from "@/lib/recommendations";
 import type { PlanRecommendation } from "@/lib/recommendations";
 import type { ScanComparison } from "@/lib/types";
 import type { ClientRow, ScanRow } from "@/lib/supabase/types";
+import {
+  metaForProduct,
+  evaluateResponse,
+  LIMITED_RESPONSE_MSG,
+  PERSISTENT_RESPONSE_MSG,
+  type ResponseLevel,
+} from "@/lib/alternatives";
 
 function fmtDate(iso: string): string {
   if (!iso) return "—";
@@ -48,6 +55,7 @@ function PlanInner() {
   const [coachNotes, setCoachNotes] = useState<string>("");
   const [notesSaveState, setNotesSaveState] = useState<"idle" | "saving" | "saved">("idle");
   const [productsGiven, setProductsGiven] = useState<string[]>([]);
+  const [scans, setScans] = useState<ScanRow[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [loaded, setLoaded] = useState(false);
 
@@ -72,6 +80,7 @@ function PlanInner() {
         }
 
         setClient(data.client);
+        setScans(data.scans);
 
         const sortedScans = [...data.scans].sort((a, b) =>
           a.scan_date.localeCompare(b.scan_date),
@@ -144,6 +153,25 @@ function PlanInner() {
       });
       return next;
     });
+  }
+
+  // Practitioner-selected alternative note for a product, if one is configured.
+  function altNoteFor(productName: string): AltNote | null {
+    const meta = metaForProduct(productName);
+    if (!meta) return null;
+    const level = evaluateResponse(meta, scans);
+    const message =
+      level === "persistent"
+        ? `${PERSISTENT_RESPONSE_MSG} ${meta.optionNote}`
+        : level === "limited"
+          ? LIMITED_RESPONSE_MSG
+          : meta.optionNote;
+    return {
+      level,
+      message,
+      alternatives: meta.approvedAlternatives,
+      contraindication: meta.contraindicationNotes,
+    };
   }
 
   if (!loaded) {
@@ -280,6 +308,7 @@ function PlanInner() {
               why={p.why}
               given={productsGiven.includes(p.name)}
               onToggle={() => toggleProductGiven(p.name)}
+              alt={altNoteFor(p.name)}
             />
           ))}
         </div>
@@ -444,18 +473,27 @@ function Section({
   );
 }
 
+interface AltNote {
+  level: ResponseLevel;
+  message: string;
+  alternatives: string[];
+  contraindication: string;
+}
+
 function ProductCard({
   product,
   role,
   why,
   given,
   onToggle,
+  alt,
 }: {
   product: string;
   role: string;
   why: string;
   given: boolean;
   onToggle: () => void;
+  alt?: AltNote | null;
 }) {
   return (
     <div
@@ -492,6 +530,45 @@ function ProductCard({
       <p className="text-[var(--solae-text-muted)] text-sm leading-relaxed">
         {why}
       </p>
+      {alt && <AlternativeNote alt={alt} />}
+    </div>
+  );
+}
+
+/** Practitioner-selected alternative note — never an automatic substitution. */
+function AlternativeNote({ alt }: { alt: AltNote }) {
+  const escalated = alt.level !== "option";
+  const accent = escalated
+    ? "var(--solae-status-red)"
+    : "var(--solae-gold-dim)";
+  return (
+    <div
+      className="mt-3 pt-3 border-t text-xs leading-relaxed"
+      style={{ borderColor: "var(--solae-border-subtle)" }}
+    >
+      <div
+        className="uppercase tracking-widest text-[10px] mb-1"
+        style={{ color: accent }}
+      >
+        {alt.level === "persistent"
+          ? "Persistent non-response"
+          : alt.level === "limited"
+            ? "Limited response"
+            : "Alternative to consider"}
+      </div>
+      <div className="text-[var(--solae-text-muted)]">{alt.message}</div>
+      {alt.alternatives.length > 0 && (
+        <div className="text-[var(--solae-text)] mt-1">
+          Practitioner alternative:{" "}
+          <span className="text-[var(--solae-gold-light)]">
+            {alt.alternatives.join(", ")}
+          </span>
+        </div>
+      )}
+      <div className="text-[var(--solae-text-faint)] mt-1 italic">
+        {alt.contraindication} Practitioner confirmation required — the app does
+        not switch products automatically.
+      </div>
     </div>
   );
 }

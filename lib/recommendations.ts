@@ -331,7 +331,7 @@ const EXPECTED_RESULTS_BY_PHASE: Record<Phase, string[]> = {
 /* --------------------------------- Disclaimer ----------------------------- */
 
 const DISCLAIMER =
-  "These recommendations are wellness support based on scan data and are not intended to diagnose, treat, cure, or prevent disease. Discuss any new supplement protocol with a qualified healthcare provider, especially if you take medications or have ongoing medical conditions.";
+  "These recommendations are wellness support based on scan data and are not intended to diagnose, treat, cure, or prevent disease. Quantum analyzer values are wellness-tracking data, not diagnostic laboratory results. Discuss any new supplement protocol with a qualified healthcare provider, especially if you take medications or have ongoing medical conditions.";
 
 /* ------------------------------- Main entry -------------------------------- */
 
