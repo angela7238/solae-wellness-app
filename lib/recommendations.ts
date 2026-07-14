@@ -150,7 +150,9 @@ function isAlreadyTaking(
 /* ------------------------------ Stack templates ----------------------------- */
 
 const PHASE_CORE: Record<Phase, string[]> = {
-  detox: ["V-Organex", "Glutation Plus"],
+  // V-Tedetox (Tea Detox) is a standing part of the Detox stack — gentle daily
+  // detox support, not dependent on one narrow scan trigger.
+  detox: ["V-Organex", "Glutation Plus", "V-Tedetox"],
   repair: ["Glutation Plus", "V-Omega 3"],
   restore: ["S-Balance", "V-Organex"],
   nourish: ["V-Daily", "VitalPro"],
@@ -346,7 +348,7 @@ export function buildRecommendations(c: ScanComparison): PlanRecommendation {
     if (picked.has(name)) return false;
     if (isAlreadyTaking(name, stack)) return false;
     if (isCoveredByNonSolae(name, ns)) return false;
-    if (role === "core" && products.filter((p) => p.role === "core").length >= 4)
+    if (role === "core" && products.filter((p) => p.role === "core").length >= 5)
       return false;
     if (
       role === "optional" &&
