@@ -137,7 +137,7 @@ function ImprovementBadge({
   const color = movedToNormal ? "#22c55e" : improved ? "#d4a24c" : "#9ca0aa";
   const pctStr = `${pctChange.toFixed(1)}%`;
   const label = movedToNormal
-    ? `↑ ${pctStr} · In Range`
+    ? `↑ ${pctStr} improved`
     : improved
       ? `↑ ${pctStr} improved`
       : `${pctStr} change`;
@@ -224,7 +224,7 @@ function LiverSection({
           <div className="text-right">
             {movedCount > 0 && (
               <div className="text-xs text-[#22c55e] font-medium">
-                {movedCount} moved to normal
+                {movedCount} moved to green
               </div>
             )}
             {improvedCount > 0 && (
@@ -305,12 +305,12 @@ function SupplementSection({
           <div className="text-right">
             {movedCount > 0 && (
               <div className="text-xs text-[#22c55e] font-medium">
-                {movedCount} moved to normal
+                {movedCount} moved to green
               </div>
             )}
             {alreadyNormal > 0 && (
               <div className="text-xs text-[var(--solae-text-faint)]">
-                {alreadyNormal} already in range
+                {alreadyNormal} already green
               </div>
             )}
           </div>
@@ -319,7 +319,7 @@ function SupplementSection({
             <div className="text-xs text-[#22c55e] font-medium">All in normal range</div>
           ) : (
             <div className="text-xs text-[var(--solae-text-faint)]">
-              {rows.length - totalOutOfRange} of {rows.length} in range
+              {rows.length - totalOutOfRange} of {rows.length} green
             </div>
           )
         )}

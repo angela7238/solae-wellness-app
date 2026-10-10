@@ -231,10 +231,10 @@ export function HeroStats({
               <span className="font-semibold">{systemsMovedToGreen}</span> systems moved to green
             </div>
             <div className="bg-[var(--solae-status-green)]/10 border border-[var(--solae-status-green)]/30 text-[var(--solae-status-green)] text-sm px-4 py-1.5 rounded-full">
-              <span className="font-semibold">{markersMovedIntoRange}</span> markers moved into range
+              <span className="font-semibold">{markersMovedIntoRange}</span> markers moved to green
             </div>
             <div className="text-[var(--solae-text-faint)] text-xs mt-1">
-              {currentMarkersInRange} of {totalMarkers} markers currently in range
+              {currentMarkersInRange} of {totalMarkers} markers currently green
             </div>
           </div>
         )}
