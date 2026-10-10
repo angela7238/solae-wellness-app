@@ -4,6 +4,7 @@ import { parseScan } from "@/lib/parser/parseScan";
 import {
   createClient,
   findClientByName,
+  fillMissingDemographics,
   saveScan,
   getClientWithScans,
 } from "@/lib/db";
@@ -56,6 +57,8 @@ export async function POST(req: Request) {
         sex: parsed.client.sex ?? null,
       });
       clientCreated = true;
+    } else {
+      clientRow = await fillMissingDemographics(clientRow, parsed.client);
     }
 
     // Save the scan (upsert by client + date — re-uploading is safe)

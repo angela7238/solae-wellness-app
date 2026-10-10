@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { Users, Eye, Trash2, Loader2, ChevronDown, ChevronRight, FileText, FlaskConical } from "lucide-react";
+import { Users, Eye, Trash2, Loader2, ChevronDown, ChevronRight, FileText, FlaskConical, Search, X } from "lucide-react";
 import type { ClientRow } from "@/lib/supabase/types";
 import type { ScanSummary } from "@/lib/db";
 
@@ -69,6 +69,17 @@ export default function ClientsPage() {
   const [clients, setClients] = useState<ClientWithScans[] | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [expanded, setExpanded] = useState<Set<string>>(new Set());
+  const [query, setQuery] = useState("");
+
+  const q = query.trim().toLowerCase();
+  const visibleClients =
+    clients && q
+      ? clients.filter((c) =>
+          [c.name, (c as { email?: string | null }).email, (c as { phone?: string | null }).phone]
+            .filter(Boolean)
+            .some((v) => String(v).toLowerCase().includes(q)),
+        )
+      : clients;
 
   useEffect(() => {
     void (async () => {
@@ -109,6 +120,38 @@ export default function ClientsPage() {
         <h1 className="font-display text-3xl text-gold">Client History</h1>
       </div>
 
+      {clients && clients.length > 0 && (
+        <div className="sticky top-[var(--header-h,81px)] z-10 -mx-1 px-1 pt-1 pb-4 mb-2 bg-[var(--solae-bg)]">
+          <div className="relative">
+            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--solae-text-faint)] pointer-events-none" />
+            <input
+              type="search"
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              placeholder={`Search ${clients.length} clients by name, email or phone`}
+              aria-label="Search clients"
+              autoComplete="off"
+              className="w-full pl-10 pr-10 py-3 rounded-lg bg-[var(--solae-bg-card)] border border-[var(--solae-border)] text-[var(--solae-text)] placeholder:text-[var(--solae-text-faint)] text-sm focus:outline-none focus:border-[var(--solae-gold-dim)] [&::-webkit-search-cancel-button]:hidden"
+            />
+            {query && (
+              <button
+                type="button"
+                onClick={() => setQuery("")}
+                aria-label="Clear search"
+                className="absolute right-2.5 top-1/2 -translate-y-1/2 p-1 rounded text-[var(--solae-text-faint)] hover:text-gold"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            )}
+          </div>
+          {q && (
+            <div className="text-xs text-[var(--solae-text-faint)] mt-2">
+              {visibleClients?.length ?? 0} of {clients.length} clients
+            </div>
+          )}
+        </div>
+      )}
+
       {error && (
         <div className="bg-[var(--solae-bg-card)] border border-[var(--solae-status-red)]/40 rounded-xl p-4 mb-4 text-[var(--solae-text-muted)] text-sm">
           Could not load clients: {error}
@@ -136,9 +179,15 @@ export default function ClientsPage() {
         </div>
       )}
 
-      {clients && clients.length > 0 && (
+      {visibleClients && clients && clients.length > 0 && visibleClients.length === 0 && (
+        <div className="text-center text-sm text-[var(--solae-text-muted)] py-12">
+          No clients match &ldquo;{query}&rdquo;.
+        </div>
+      )}
+
+      {visibleClients && visibleClients.length > 0 && (
         <div className="flex flex-col gap-3">
-          {clients.map((client) => {
+          {visibleClients.map((client) => {
             const isExpanded = expanded.has(client.id);
             const sortedScans = [...client.scans].sort((a, b) =>
               a.scan_date.localeCompare(b.scan_date),

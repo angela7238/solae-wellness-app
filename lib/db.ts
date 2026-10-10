@@ -60,6 +60,32 @@ export async function createClient(input: {
   return data as ClientRow;
 }
 
+/**
+ * Fill in age/sex on an existing client when they're blank. Clients synced in
+ * from Mangomint arrive without these, and the dashboard, radar and plan read
+ * them from the client row — so the scan's values are copied over on import.
+ * Never overwrites a value that's already set.
+ */
+export async function fillMissingDemographics(
+  client: ClientRow,
+  fromScan: { age?: number | null; sex?: string | null },
+): Promise<ClientRow> {
+  const patch: { age?: number; sex?: string } = {};
+  if (client.age == null && fromScan.age) patch.age = fromScan.age;
+  if (!client.sex && fromScan.sex) patch.sex = fromScan.sex;
+  if (Object.keys(patch).length === 0) return client;
+
+  const supabase = createServerSupabase();
+  const { data, error } = await supabase
+    .from("clients")
+    .update(patch)
+    .eq("id", client.id)
+    .select()
+    .single();
+  if (error) throw error;
+  return data as ClientRow;
+}
+
 /** Save (or upsert by client_id + scan_date) a parsed scan. */
 export async function saveScan(input: {
   clientId: string;
