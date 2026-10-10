@@ -3,7 +3,7 @@
 import { useEffect, useRef } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Home, Upload, Users, FlaskConical } from "lucide-react";
+import { Home, Upload, Users, FlaskConical, LogOut } from "lucide-react";
 import { Logo } from "./Logo";
 
 const tabs = [
@@ -36,6 +36,7 @@ export function Header() {
         <Link href="/" className="hover:opacity-90 transition-opacity">
           <Logo size="md" />
         </Link>
+        {pathname !== "/login" && (
         <nav className="flex items-center gap-2">
           {tabs.map(({ href, label, icon: Icon }) => {
             const active = pathname === href;
@@ -54,7 +55,18 @@ export function Header() {
               </Link>
             );
           })}
+          <form method="post" action="/auth/signout" className="ml-2">
+            <button
+              type="submit"
+              title="Sign out"
+              aria-label="Sign out"
+              className="flex items-center justify-center w-9 h-9 rounded-md text-[var(--solae-text-faint)] hover:text-gold transition-colors"
+            >
+              <LogOut className="w-4 h-4" />
+            </button>
+          </form>
         </nav>
+        )}
       </div>
     </header>
   );
