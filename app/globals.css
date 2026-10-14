@@ -86,6 +86,28 @@ body::before {
   color: var(--solae-gold-light);
 }
 
+/* Solae Guide has a calm cream/gold surface, while the studio dashboard keeps its theme. */
+.guide-shell { background:#f5f1ea; color:#181612; padding:clamp(20px,4vw,40px); border-radius:12px; font-family:Arial,Helvetica,sans-serif; }
+.guide-shell h1,.guide-shell h2,.guide-shell h3 { font-family:Georgia,'Times New Roman',serif; font-weight:400; margin:20px 0 12px; }
+.guide-shell h1 { font-size:clamp(28px,4vw,38px); }
+.guide-shell h2 { font-size:26px; }.guide-shell h3 { font-size:21px; }
+.guide-shell p { margin:12px 0; }.guide-shell .guide-muted { color:#655947; font-size:14px; }
+.guide-eyebrow { font-size:12px; letter-spacing:.12em; color:#655947; }
+.guide-panel { padding:22px; margin:22px 0; background:#fff; border:1px solid #ddd4c5; border-radius:8px; }
+.guide-shell label { display:block; margin:14px 0 7px; }
+.guide-shell input:not([type=checkbox]),.guide-shell textarea,.guide-shell select { width:100%; background:#fff; color:#181612; border:1px solid #9e9585; padding:12px; border-radius:5px; margin-bottom:12px; }
+.guide-shell input[type=checkbox] { width:18px; height:18px; accent-color:#7a6246; flex-shrink:0; }
+.guide-shell .guide-check { display:flex; align-items:center; gap:10px; }
+.guide-shell button,.guide-button { display:inline-block; background:#c9b183; color:#181612; padding:12px 18px; border-radius:5px; margin:8px 0; text-decoration:none; }
+.guide-shell button:disabled { opacity:.5; cursor:not-allowed; }
+.guide-shell a:not(.guide-button) { text-decoration:underline; }
+.guide-report { margin:24px 0; overflow-wrap:anywhere; }
+.guide-track { background:#e8e1d4; height:8px; margin-top:7px; border-radius:2px; }
+.guide-current { background:#a98b52; height:100%; }.guide-previous { background:#8a8479; height:100%; }
+.guide-system { margin:22px 0; break-inside:avoid; }
+.guide-legend { display:flex; gap:20px; flex-wrap:wrap; color:#655947; font-size:14px; }
+@media print { .guide-shell { padding:0; background:#fff; }.guide-panel { break-inside:avoid; } }
+
 /* ============================================
    Print styles — clean PDF output
    ============================================ */

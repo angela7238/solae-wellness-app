@@ -11,10 +11,12 @@ const tabs = [
   { href: "/import", label: "Import Scan", icon: Upload },
   { href: "/clients", label: "Clients", icon: Users },
   { href: "/supplements", label: "Supplements", icon: FlaskConical },
+  { href: "/guide", label: "Solae Guide", icon: FlaskConical },
 ];
 
 export function Header() {
   const pathname = usePathname();
+  const clientPortal = pathname === "/portal" || pathname.startsWith("/portal/");
   const ref = useRef<HTMLElement>(null);
 
   // Publish the header's height so other sticky elements (the client search
@@ -33,10 +35,10 @@ export function Header() {
   return (
     <header ref={ref} className="border-b border-[var(--solae-border-subtle)] bg-[var(--solae-bg)]/80 backdrop-blur sticky top-0 z-20">
       <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
-        <Link href="/" className="hover:opacity-90 transition-opacity">
+        <Link href={clientPortal ? "/portal" : "/"} className="hover:opacity-90 transition-opacity">
           <Logo size="md" />
         </Link>
-        {pathname !== "/login" && (
+        {pathname !== "/login" && !clientPortal && (
         <nav className="flex items-center gap-2">
           {tabs.map(({ href, label, icon: Icon }) => {
             const active = pathname === href;

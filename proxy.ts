@@ -5,6 +5,8 @@
 // SESSION_SECRET is missing, the whole app is locked rather than left open.
 import { NextResponse, type NextRequest } from "next/server";
 import { SESSION_COOKIE, isValidSessionValue } from "@/lib/session";
+import { createServerClient } from "@supabase/ssr";
+import { isPortalPath } from "@/lib/guide/security";
 
 /** Reachable without a session. Everything else requires sign-in. */
 const PUBLIC_PATHS = ["/login", "/auth"];
@@ -15,8 +17,29 @@ function isPublic(pathname: string): boolean {
   );
 }
 
-export async function middleware(request: NextRequest) {
+export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
+  if (isPortalPath(pathname)) {
+    let response = NextResponse.next({ request });
+    const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+    const key = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+    if (process.env.SOLAE_GUIDE_ENABLED === "true" && url && key) {
+      const auth = createServerClient(url, key, { cookieOptions: { httpOnly: true, secure: process.env.NODE_ENV === "production", sameSite: "lax", path: "/" }, cookies: {
+        getAll: () => request.cookies.getAll(),
+        setAll: values => {
+          values.forEach(({ name, value }) => request.cookies.set(name, value));
+          response = NextResponse.next({ request });
+          values.forEach(({ name, value, options }) => response.cookies.set(name, value, options));
+        },
+      } });
+      // Refresh the client session here; routes verify identity and enrollment again.
+      await auth.auth.getUser();
+    }
+    response.headers.set("Cache-Control", "private, no-store");
+    response.headers.set("Referrer-Policy", "no-referrer");
+    response.headers.set("X-Content-Type-Options", "nosniff");
+    return response;
+  }
   const secret = process.env.SESSION_SECRET;
   const password = process.env.APP_PASSWORD;
 
