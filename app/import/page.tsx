@@ -12,6 +12,7 @@ interface ParseResponse extends ParsedScan {
     scanId: string;
     scanNumber: number;
     totalScans: number;
+    guideWarning?: string;
   };
 }
 
@@ -215,6 +216,11 @@ function SuccessPanel({
             (result.markersInRange / Math.max(result.totalMarkers, 1)) * 100,
           )}%)`}
         />
+      </div>
+
+      <div className="mb-6 text-sm">
+        {result._meta.guideWarning && <p role="status">{result._meta.guideWarning}</p>}
+        <a href="/guide" className="text-gold underline">Review with Solae Guide →</a>
       </div>
 
       <div className="text-[var(--solae-text-muted)] text-xs uppercase tracking-widest mb-3">

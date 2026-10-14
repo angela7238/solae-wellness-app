@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { extractPdfText } from "@/lib/parser/extractPdfText";
 import { parseScan } from "@/lib/parser/parseScan";
+import { ensureGuideDraft } from "@/lib/guide/server";
 import {
   createClient,
   findClientByName,
@@ -71,6 +72,16 @@ export async function POST(req: Request) {
     // Look up the client's full scan list so the UI can show "scan #X of Y"
     // and route directly to the multi-scan compare view.
     const withScans = await getClientWithScans(clientRow.id);
+    let guideWarning: string | undefined;
+    if (process.env.SOLAE_GUIDE_ENABLED === "true") {
+      try {
+        for (const scan of withScans?.scans ?? [scanRow]) {
+          await ensureGuideDraft(clientRow.id, scan.id);
+        }
+      } catch {
+        guideWarning = "Scan saved, but Solae Guide could not prepare its draft. Review it from the Solae Guide screen.";
+      }
+    }
     const totalScans = withScans?.scans.length ?? 1;
     const scanNumber =
       (withScans?.scans
@@ -86,6 +97,7 @@ export async function POST(req: Request) {
         scanId: scanRow.id,
         scanNumber,
         totalScans,
+        guideWarning,
       },
     });
   } catch (err) {

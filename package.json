@@ -6,25 +6,29 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "test:guide": "node --test scripts/test-guide.cjs scripts/test-guide-db.cjs"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.94.0",
+    "@supabase/ssr": "^0.12.7",
     "@supabase/supabase-js": "^2.105.3",
     "lucide-react": "^1.14.0",
-    "next": "16.2.4",
+    "next": "^16.4.0",
+    "pdf-lib": "^1.17.1",
     "react": "19.2.4",
     "react-dom": "19.2.4",
     "recharts": "^3.8.1",
     "unpdf": "^1.6.2"
   },
   "devDependencies": {
+    "@electric-sql/pglite": "^0.5.9",
     "@tailwindcss/postcss": "^4",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "eslint": "^9",
-    "eslint-config-next": "16.2.4",
+    "eslint-config-next": "^16.4.0",
     "tailwindcss": "^4",
     "typescript": "^5"
   }
