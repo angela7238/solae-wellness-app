@@ -36,6 +36,7 @@ create table if not exists public.scans (
 
 -- Migration: add notes column if upgrading from an older schema
 alter table public.scans add column if not exists notes text;
+alter table public.scans add column if not exists coach_notes text;
 
 -- Products the coach checked off as "given" to the client at this visit.
 alter table public.scans add column if not exists products_given jsonb not null default '[]'::jsonb;
@@ -77,6 +78,10 @@ alter table public.supplement_evaluations add column if not exists brand_name te
 alter table public.clients                enable row level security;
 alter table public.scans                  enable row level security;
 alter table public.supplement_evaluations enable row level security;
+
+-- Fresh preview branches may not inherit the project's default grants.
+-- Only the server role needs access; no browser role is granted health data.
+grant all on public.clients, public.scans, public.supplement_evaluations to service_role;
 
 -- Remove any legacy permissive anon policies (safe if they don't exist).
 drop policy if exists clients_anon_all   on public.clients;
