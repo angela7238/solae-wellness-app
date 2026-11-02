@@ -152,8 +152,8 @@ function isAlreadyTaking(
 const PHASE_CORE: Record<Phase, string[]> = {
   // V-Tedetox (Tea Detox) is a standing part of the Detox stack — gentle daily
   // detox support, not dependent on one narrow scan trigger.
-  detox: ["V-Organex", "Glutation Plus", "V-Tedetox"],
-  repair: ["Glutation Plus", "V-Omega 3"],
+  detox: ["V-Organex", "V-Glutation", "V-Tedetox"],
+  repair: ["V-Glutation", "V-Omega 3"],
   restore: ["S-Balance", "V-Organex"],
   nourish: ["V-Daily", "VitalPro"],
 };
@@ -269,13 +269,13 @@ const ROUTINE_BY_PHASE: Record<Phase, DailyRoutine> = {
     morning:
       "On waking: 12–16 oz warm water with lemon. V-Organex with breakfast (or before, per label). Light movement — a short walk supports lymph flow.",
     afternoon:
-      "Continue hydrating (half your body weight in ounces, minimum). Glutation Plus mid-afternoon if drainage feels heavy. Keep meals simple — protein + vegetables.",
+      "Continue hydrating (half your body weight in ounces, minimum). V-Glutation (capsule) mid-afternoon if drainage feels heavy. Keep meals simple — protein + vegetables.",
     evening:
       "Light dinner before 7pm. V-Tedetox 30–60 min before bed if bowels are sluggish. Wind down screens by 9pm — sleep is when detox pathways do the most work.",
   },
   repair: {
     morning:
-      "Hydrate first. Glutation Plus with breakfast for cellular protection. V-Omega 3 with the meal that has the most fat (best absorption).",
+      "Hydrate first. V-Glutation (capsule) with breakfast for cellular protection. V-Omega 3 with the meal that has the most fat (best absorption).",
     afternoon:
       "Steady protein + healthy fats. Anti-inflammatory foods — leafy greens, berries, fatty fish. Movement that doesn't overstress: walking, yoga, light strength.",
     evening:
