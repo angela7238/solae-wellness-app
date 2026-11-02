@@ -11,9 +11,6 @@ import {
   ListChecks,
   CheckCircle2,
   Pill,
-  Sun,
-  Coffee,
-  Moon,
   TrendingUp,
   ShieldAlert,
   Layers,
@@ -242,6 +239,18 @@ function PlanInner() {
     ? suggestProducts(selectedGoal, profile)
     : null;
 
+  const goalLabel =
+    CLIENT_STACKS.find((s) => s.id === selectedGoal)?.goal ?? "";
+  const profileSummary = [
+    EATING_PATTERNS.find((p) => p.value === profile.eating)?.label,
+    profile.hormonal !== "na" && profile.hormonal !== "unknown"
+      ? HORMONAL_STAGES.find((p) => p.value === profile.hormonal)?.label
+      : null,
+    EXERCISE_STATUSES.find((p) => p.value === profile.exercise)?.label,
+  ]
+    .filter(Boolean)
+    .join(" · ");
+
   return (
     <div>
       {/* Action bar */}
@@ -300,29 +309,40 @@ function PlanInner() {
         </div>
       </Section>
 
-      {/* Your daily routine — lead with the client's actionable plan */}
-      <Section
-        icon={<Sun className="w-6 h-6 text-gold" />}
-        title="Your Daily Routine"
-      >
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-          <RoutineCard
-            icon={<Sun className="w-5 h-5" />}
-            time="Morning"
-            text={recommendation.dailyRoutine.morning}
-          />
-          <RoutineCard
-            icon={<Coffee className="w-5 h-5" />}
-            time="Midday"
-            text={recommendation.dailyRoutine.afternoon}
-          />
-          <RoutineCard
-            icon={<Moon className="w-5 h-5" />}
-            time="Evening"
-            text={recommendation.dailyRoutine.evening}
-          />
+      {/* Wellness Focus — prints the selected goal + client profile context */}
+      {selectedGoal && (
+        <div className="hidden print:block mb-6">
+          <h2 className="font-display text-2xl text-gold mb-2">Wellness Focus</h2>
+          <div className="text-sm text-[var(--solae-text)]">
+            {goalLabel}
+            {profileSummary ? ` — ${profileSummary}` : ""}
+          </div>
         </div>
-      </Section>
+      )}
+
+      {/* Supplement directions — the products this client is taking */}
+      {productsGiven.length > 0 && (
+        <Section
+          icon={<Pill className="w-6 h-6 text-gold" />}
+          title="Your Supplement Directions"
+        >
+          <ul className="flex flex-col gap-2">
+            {productsGiven.map((name) => (
+              <li
+                key={name}
+                className="bg-[var(--solae-bg-card)] border border-[var(--solae-border-subtle)] rounded-lg px-4 py-3 flex items-baseline justify-between gap-3 flex-wrap"
+              >
+                <span className="text-[var(--solae-text)] text-sm font-medium">
+                  {name}
+                </span>
+                <span className="text-[var(--solae-text-faint)] text-xs">
+                  As directed on the current product label
+                </span>
+              </li>
+            ))}
+          </ul>
+        </Section>
+      )}
 
       {/* Phase rationale */}
       <Section icon={<Sparkles className="w-6 h-6 text-gold" />} title="Your Current Phase">
@@ -769,22 +789,3 @@ function AlternativeNote({ alt }: { alt: AltNote }) {
   );
 }
 
-function RoutineCard({
-  icon,
-  time,
-  text,
-}: {
-  icon: React.ReactNode;
-  time: string;
-  text: string;
-}) {
-  return (
-    <div className="bg-[var(--solae-bg-card)] border border-[var(--solae-border-subtle)] rounded-lg p-5">
-      <div className="flex items-center gap-2 text-gold mb-3">
-        {icon}
-        <span className="font-display text-lg">{time}</span>
-      </div>
-      <p className="text-[var(--solae-text)] text-sm leading-relaxed">{text}</p>
-    </div>
-  );
-}
