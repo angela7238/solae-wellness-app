@@ -2,6 +2,37 @@
 
 import type { ParsedScan, ParsedMarker } from "@/lib/parser/parseScan";
 
+// ─── Amino acid descriptions ───────────────────────────────────────────────────
+// Short, plain-language "what it supports" lines so the practitioner doesn't have
+// to explain each one from memory. Wellness framing, not medical claims.
+const AMINO_DESCRIPTIONS: Record<string, string> = {
+  leucine: "Branched-chain amino acid — supports muscle building and repair.",
+  isoleucine: "Branched-chain amino acid — supports energy, endurance, and recovery.",
+  valine: "Branched-chain amino acid — supports muscle maintenance and steady energy.",
+  lysine: "Supports collagen, calcium absorption, and immune resilience.",
+  threonine: "Supports collagen, elastin, and a healthy gut lining.",
+  methionine: "Supports detox pathways, metabolism, and healthy hair, skin, and nails.",
+  phenylalanine: "A building block for focus and mood neurotransmitters.",
+  tryptophan: "A precursor to serotonin — supports mood and restful sleep.",
+  histidine: "Supports tissue repair and a balanced histamine/immune response.",
+  arginine: "Supports circulation and healthy blood flow.",
+  glutamine: "Supports the gut lining, recovery, and immune function.",
+  "glutamic acid": "Supports brain function and energy metabolism.",
+  tyrosine: "Supports focus, drive, and thyroid function.",
+  cysteine: "Supports antioxidant (glutathione) production and detox.",
+  glycine: "Supports collagen, calm, and sleep quality.",
+  taurine: "Supports heart health, hydration, and energy balance.",
+  alanine: "Supports steady energy and blood-sugar balance.",
+  proline: "Supports collagen, skin, and joint tissue.",
+  serine: "Supports brain function and healthy cell membranes.",
+  asparagine: "Supports energy metabolism and nervous-system balance.",
+  "aspartic acid": "Supports energy production and metabolism.",
+};
+
+function aminoDescription(name: string): string | undefined {
+  return AMINO_DESCRIPTIONS[name.trim().toLowerCase()];
+}
+
 // ─── Types ────────────────────────────────────────────────────────────────────
 
 type StatusLabel = "LOW" | "NORMAL" | "HIGH";
@@ -157,12 +188,25 @@ function formatValue(value: number): string {
 }
 
 // Single marker comparison row
-function MarkerCompareRow({ row, showBaseline }: { row: MarkerRow; showBaseline: boolean }) {
+function MarkerCompareRow({
+  row,
+  showBaseline,
+  description,
+}: {
+  row: MarkerRow;
+  showBaseline: boolean;
+  description?: string;
+}) {
   return (
     <div className="flex items-center justify-between gap-3 py-2.5 border-b border-[var(--solae-border-subtle)] last:border-0">
-      {/* Marker name */}
-      <div className="text-sm text-[var(--solae-text)] min-w-0 flex-1 truncate">
-        {row.name}
+      {/* Marker name (+ optional plain-language description) */}
+      <div className="min-w-0 flex-1">
+        <div className="text-sm text-[var(--solae-text)] truncate">{row.name}</div>
+        {description && (
+          <div className="text-[11px] text-[var(--solae-text-faint)] leading-snug mt-0.5 pr-2">
+            {description}
+          </div>
+        )}
       </div>
 
       {/* Value comparison */}
@@ -265,11 +309,13 @@ function SupplementSection({
   subtitle,
   rows,
   showBaseline,
+  describe,
 }: {
   title: string;
   subtitle: string;
   rows: MarkerRow[];
   showBaseline: boolean;
+  describe?: (name: string) => string | undefined;
 }) {
   if (rows.length === 0) return null;
 
@@ -332,7 +378,12 @@ function SupplementSection({
       ) : (
         <div className="px-5">
           {visible.map((row) => (
-            <MarkerCompareRow key={row.name} row={row} showBaseline={showBaseline} />
+            <MarkerCompareRow
+              key={row.name}
+              row={row}
+              showBaseline={showBaseline}
+              description={describe?.(row.name)}
+            />
           ))}
         </div>
       )}
@@ -411,6 +462,7 @@ export function TransformationSnapshot({
           subtitle="Essential amino acid profile"
           rows={aminoRows}
           showBaseline={showBaseline}
+          describe={aminoDescription}
         />
       </div>
     </div>
