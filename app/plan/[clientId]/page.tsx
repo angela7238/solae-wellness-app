@@ -16,6 +16,7 @@ import {
   Moon,
   TrendingUp,
   ShieldAlert,
+  Layers,
 } from "lucide-react";
 import { buildComparison } from "@/lib/compare";
 import { fromParsedScan } from "@/lib/adapters";
@@ -30,6 +31,12 @@ import {
   PERSISTENT_RESPONSE_MSG,
   type ResponseLevel,
 } from "@/lib/alternatives";
+import {
+  CLIENT_STACKS,
+  EATING_PATTERNS,
+  suggestProducts,
+  type EatingPattern,
+} from "@/lib/clientStacks";
 
 function fmtDate(iso: string): string {
   if (!iso) return "—";
@@ -56,6 +63,8 @@ function PlanInner() {
   const [notesSaveState, setNotesSaveState] = useState<"idle" | "saving" | "saved">("idle");
   const [productsGiven, setProductsGiven] = useState<string[]>([]);
   const [scans, setScans] = useState<ScanRow[]>([]);
+  const [selectedGoal, setSelectedGoal] = useState<string>("");
+  const [eatingPattern, setEatingPattern] = useState<EatingPattern>("balanced");
   const [error, setError] = useState<string | null>(null);
   const [loaded, setLoaded] = useState(false);
 
@@ -98,6 +107,10 @@ function PlanInner() {
         setCompareScanId(compareScan.id);
         setCoachNotes(compareScan.coach_notes ?? "");
         setProductsGiven(compareScan.products_given ?? []);
+        setSelectedGoal(compareScan.stack_selection?.goal ?? "");
+        setEatingPattern(
+          (compareScan.stack_selection?.eating as EatingPattern) ?? "balanced",
+        );
 
         const sc =
           baselineScan.id === compareScan.id
@@ -155,6 +168,17 @@ function PlanInner() {
     });
   }
 
+  function saveStackSelection(goal: string, eating: EatingPattern) {
+    if (!compareScanId) return;
+    void fetch(`/api/scans/${compareScanId}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        stack_selection: goal ? { goal, eating } : null,
+      }),
+    });
+  }
+
   // Practitioner-selected alternative note for a product, if one is configured.
   function altNoteFor(productName: string): AltNote | null {
     const meta = metaForProduct(productName);
@@ -195,6 +219,10 @@ function PlanInner() {
       </div>
     );
   }
+
+  const suggestion = selectedGoal
+    ? suggestProducts(selectedGoal, eatingPattern)
+    : null;
 
   return (
     <div>
@@ -342,6 +370,117 @@ function PlanInner() {
           </div>
         </Section>
       )}
+
+      {/* Wellness Stack Selector (practitioner tool — not part of the printed plan) */}
+      <div className="no-print">
+        <Section
+          icon={<Layers className="w-6 h-6 text-gold" />}
+          title="Wellness Stack"
+        >
+          <div className="bg-[var(--solae-bg-card)] border border-[var(--solae-border)] rounded-xl p-5">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-1">
+              <div>
+                <label className="block text-[10px] tracking-widest uppercase text-[var(--solae-text-faint)] mb-2">
+                  Primary Wellness Goal
+                </label>
+                <select
+                  value={selectedGoal}
+                  onChange={(e) => {
+                    setSelectedGoal(e.target.value);
+                    saveStackSelection(e.target.value, eatingPattern);
+                  }}
+                  className="w-full bg-[var(--solae-bg)] border border-[var(--solae-border)] rounded-lg px-4 py-2.5 text-sm text-[var(--solae-text)] focus:outline-none focus:border-[var(--solae-gold-dim)]"
+                >
+                  <option value="">Select a goal…</option>
+                  {CLIENT_STACKS.map((s) => (
+                    <option key={s.id} value={s.id}>
+                      {s.goal}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label className="block text-[10px] tracking-widest uppercase text-[var(--solae-text-faint)] mb-2">
+                  Eating Pattern
+                </label>
+                <select
+                  value={eatingPattern}
+                  onChange={(e) => {
+                    const v = e.target.value as EatingPattern;
+                    setEatingPattern(v);
+                    saveStackSelection(selectedGoal, v);
+                  }}
+                  className="w-full bg-[var(--solae-bg)] border border-[var(--solae-border)] rounded-lg px-4 py-2.5 text-sm text-[var(--solae-text)] focus:outline-none focus:border-[var(--solae-gold-dim)]"
+                >
+                  {EATING_PATTERNS.map((p) => (
+                    <option key={p.value} value={p.value}>
+                      {p.label}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </div>
+
+            {suggestion && (
+              <div className="mt-4 pt-4 border-t border-[var(--solae-border-subtle)]">
+                {suggestion.note && (
+                  <div className="text-xs text-[var(--solae-status-green)] bg-[var(--solae-status-green)]/10 border border-[var(--solae-status-green)]/25 rounded-lg px-3 py-2 mb-3">
+                    {suggestion.note}
+                  </div>
+                )}
+                <div className="text-[10px] tracking-widest uppercase text-[var(--solae-gold-light)] mb-2">
+                  Suggested — awaiting your review
+                </div>
+                <ul className="flex flex-col gap-2">
+                  {suggestion.products.map((p) => {
+                    const added = productsGiven.includes(p.name);
+                    return (
+                      <li
+                        key={p.name}
+                        className="flex items-start justify-between gap-3 bg-[var(--solae-bg)] border border-[var(--solae-border-subtle)] rounded-lg px-4 py-3"
+                      >
+                        <div className="min-w-0">
+                          <div className="flex items-baseline gap-2 flex-wrap">
+                            <span className="text-sm font-medium text-[var(--solae-text)]">
+                              {p.name}
+                            </span>
+                            <span className="text-[10px] uppercase tracking-widest text-[var(--solae-text-faint)]">
+                              {p.role}
+                            </span>
+                          </div>
+                          <div className="text-xs text-[var(--solae-text-muted)] mt-0.5">
+                            {p.reason}
+                          </div>
+                          {p.caution && (
+                            <div className="text-xs text-[var(--solae-status-red)] mt-1">
+                              ⚠ {p.caution}
+                            </div>
+                          )}
+                        </div>
+                        <button
+                          onClick={() => toggleProductGiven(p.name)}
+                          className={`shrink-0 text-xs px-3 py-1.5 rounded-md border transition-colors ${
+                            added
+                              ? "border-[var(--solae-status-green)]/50 text-[var(--solae-status-green)]"
+                              : "border-[var(--solae-gold-dim)] text-gold hover:bg-[var(--solae-gold)]/10"
+                          }`}
+                        >
+                          {added ? "Added ✓" : "Add"}
+                        </button>
+                      </li>
+                    );
+                  })}
+                </ul>
+                <div className="text-[11px] text-[var(--solae-text-faint)] mt-3">
+                  Adding a product checks it into this client&rsquo;s plan below.
+                  Review safety and current labels before approving. Your existing
+                  selections and Coach Notes are untouched.
+                </div>
+              </div>
+            )}
+          </div>
+        </Section>
+      </div>
 
       {/* Recommended core stack */}
       <Section

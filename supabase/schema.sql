@@ -40,6 +40,9 @@ alter table public.scans add column if not exists notes text;
 -- Products the coach checked off as "given" to the client at this visit.
 alter table public.scans add column if not exists products_given jsonb not null default '[]'::jsonb;
 
+-- Wellness goal + profile filters chosen for this visit's plan (Stack Selector).
+alter table public.scans add column if not exists stack_selection jsonb;
+
 create index if not exists scans_client_id_idx on public.scans (client_id);
 create index if not exists scans_client_date_idx on public.scans (client_id, scan_date desc);
 

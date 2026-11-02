@@ -3,6 +3,7 @@ import {
   updateScanNotes,
   updateScanCoachNotes,
   updateScanProductsGiven,
+  updateScanStackSelection,
 } from "@/lib/db";
 
 export async function PATCH(
@@ -15,6 +16,7 @@ export async function PATCH(
       notes?: string;
       coach_notes?: string;
       products_given?: string[];
+      stack_selection?: { goal: string; eating: string } | null;
     };
 
     if (typeof body.notes === "string") {
@@ -26,9 +28,11 @@ export async function PATCH(
         id,
         body.products_given.filter((p): p is string => typeof p === "string"),
       );
+    } else if ("stack_selection" in body) {
+      await updateScanStackSelection(id, body.stack_selection ?? null);
     } else {
       return NextResponse.json(
-        { error: "notes, coach_notes, or products_given required" },
+        { error: "notes, coach_notes, products_given, or stack_selection required" },
         { status: 400 },
       );
     }

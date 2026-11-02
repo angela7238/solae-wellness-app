@@ -135,3 +135,113 @@ export const CLIENT_STACKS: ClientStack[] = [
     products: ["V-Daily", "VitalPro", "Nourish+", "V-Omega 3"],
   },
 ];
+
+// ─── Phase 1: goal + profile → suggested products (awaiting review) ─────────────
+
+export type ProductRole = "foundational" | "conditional" | "optional";
+export type EatingPattern = "cravings" | "low-intake" | "balanced" | "unknown";
+
+export const EATING_PATTERNS: { value: EatingPattern; label: string }[] = [
+  { value: "balanced", label: "Generally balanced intake" },
+  { value: "cravings", label: "Frequent cravings / appetite concerns" },
+  { value: "low-intake", label: "Eats very little / skips meals" },
+  { value: "unknown", label: "Unknown" },
+];
+
+export interface SuggestedProduct {
+  name: string;
+  role: ProductRole;
+  reason: string;
+  caution?: string;
+}
+
+export interface StackSuggestion {
+  products: SuggestedProduct[];
+  /** Optional guidance shown above the suggestions. */
+  note?: string;
+}
+
+/**
+ * Suggest products for a goal, refined by eating pattern. Weight & Metabolism is
+ * eating-pattern aware: a cravings client and a barely-eating client get
+ * different stacks. Nothing here is auto-approved — the practitioner reviews.
+ */
+export function suggestProducts(
+  goalId: string,
+  eating: EatingPattern,
+): StackSuggestion {
+  if (goalId === "weight-metabolism") {
+    if (eating === "low-intake") {
+      return {
+        note: "Nourishment first — no appetite suppressants or thermogenics. Flag persistent under-eating for appropriate professional assessment.",
+        products: [
+          {
+            name: "VitalPro",
+            role: "foundational",
+            reason: "Protein support when dietary protein intake is insufficient.",
+          },
+          {
+            name: "V-Daily",
+            role: "conditional",
+            reason: "Micronutrient support where nutritional gaps exist.",
+          },
+        ],
+      };
+    }
+    if (eating === "cravings") {
+      return {
+        products: [
+          {
+            name: "VitalPro",
+            role: "foundational",
+            reason: "Protein and satiety support when protein intake is low.",
+          },
+          {
+            name: "V-Control",
+            role: "conditional",
+            reason: "Appetite and satiety support.",
+            caution:
+              "Only when food intake is adequate — not for under-eating or disordered eating.",
+          },
+          {
+            name: "S-Balance",
+            role: "conditional",
+            reason: "Blood sugar and metabolic support.",
+            caution:
+              "Screen medications (especially glucose-lowering) and metabolic history first.",
+          },
+        ],
+      };
+    }
+    return {
+      products: [
+        {
+          name: "VitalPro",
+          role: "foundational",
+          reason: "Protein support when intake is insufficient.",
+        },
+        {
+          name: "V-Daily",
+          role: "optional",
+          reason: "Micronutrient support where gaps are identified.",
+        },
+        {
+          name: "S-Balance",
+          role: "conditional",
+          reason: "Blood sugar and metabolic support.",
+          caution: "Screen medications and metabolic history first.",
+        },
+      ],
+    };
+  }
+
+  const stack = CLIENT_STACKS.find((s) => s.id === goalId);
+  if (!stack) return { products: [] };
+  return {
+    products: stack.products.map((name, i) => ({
+      name,
+      role: i === 0 ? "foundational" : "optional",
+      reason: productSupports(name),
+    })),
+  };
+}

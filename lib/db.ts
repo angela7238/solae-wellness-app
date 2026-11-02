@@ -219,6 +219,19 @@ export async function updateScanProductsGiven(
   if (error) throw error;
 }
 
+/** Save the wellness goal + profile filters chosen for this visit's plan. */
+export async function updateScanStackSelection(
+  scanId: string,
+  stackSelection: { goal: string; eating: string } | null,
+): Promise<void> {
+  const supabase = createServerSupabase();
+  const { error } = await supabase
+    .from("scans")
+    .update({ stack_selection: stackSelection })
+    .eq("id", scanId);
+  if (error) throw error;
+}
+
 export async function saveSupplementEvaluation(input: {
   clientId: string;
   productName: string;

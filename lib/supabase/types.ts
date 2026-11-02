@@ -38,6 +38,8 @@ export interface ScanRow {
   coach_notes: string | null;
   /** Product names the coach checked off as given to the client at this visit. */
   products_given: string[] | null;
+  /** Wellness goal + profile filters chosen for this visit's plan. */
+  stack_selection: { goal: string; eating: string } | null;
   uploaded_at: string;
 }
 
