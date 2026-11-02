@@ -229,6 +229,17 @@ function PlanInner() {
         </div>
       </header>
 
+      {/* Coach Notes — printed on the FIRST page so clients see them (the
+          editable copy stays near the bottom on screen). */}
+      {coachNotes && (
+        <div className="hidden print:block mb-8 pb-6 border-b border-[var(--solae-border-subtle)]">
+          <h2 className="font-display text-2xl text-gold mb-3">Coach Notes</h2>
+          <div className="whitespace-pre-wrap text-sm text-[var(--solae-text)]">
+            {coachNotes}
+          </div>
+        </div>
+      )}
+
       {/* Phase rationale */}
       <Section icon={<Sparkles className="w-6 h-6 text-gold" />} title="Your Current Phase">
         <div className="bg-[var(--solae-bg-card)] border border-[var(--solae-border)] rounded-xl p-6">
@@ -406,7 +417,8 @@ function PlanInner() {
         </ul>
       </Section>
 
-      {/* Coach notes */}
+      {/* Coach notes — editable on screen; prints at the TOP of the report instead (see header). */}
+      <div className="no-print">
       <Section
         icon={<ListChecks className="w-6 h-6 text-gold" />}
         title="Coach Notes"
@@ -429,6 +441,7 @@ function PlanInner() {
           </div>
         </div>
       </Section>
+      </div>
 
       {/* Disclaimer */}
       <Section
