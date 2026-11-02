@@ -3,14 +3,14 @@
 import { useEffect, useRef } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Home, Upload, Users, FlaskConical, LogOut } from "lucide-react";
+import { Home, Upload, Users, Layers, LogOut } from "lucide-react";
 import { Logo } from "./Logo";
 
 const tabs = [
   { href: "/", label: "Home", icon: Home },
   { href: "/import", label: "Import Scan", icon: Upload },
   { href: "/clients", label: "Clients", icon: Users },
-  { href: "/supplements", label: "Supplements", icon: FlaskConical },
+  { href: "/supplements", label: "Stacks", icon: Layers },
 ];
 
 export function Header() {
