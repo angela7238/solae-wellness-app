@@ -17,6 +17,7 @@ create table if not exists public.clients (
   non_solae_supplements    jsonb default '{"omega3":false,"berberine":false,"cinnamon":false,"glutathione":false,"multivitamin":false,"other":""}'::jsonb,
   goals                    text,
   notes                    text,
+  wellness_profile         jsonb,
   created_at               timestamptz not null default now()
 );
 

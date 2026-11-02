@@ -1,7 +1,42 @@
 import { NextResponse } from "next/server";
-import { getClientWithScans, deleteClient } from "@/lib/db";
+import {
+  getClientWithScans,
+  deleteClient,
+  updateClientWellnessProfile,
+} from "@/lib/db";
 
 export const runtime = "nodejs";
+
+export async function PATCH(
+  req: Request,
+  ctx: { params: Promise<{ id: string }> },
+) {
+  try {
+    const { id } = await ctx.params;
+    const body = (await req.json()) as {
+      wellness_profile?: {
+        eating: string;
+        hormonal: string;
+        exercise: string;
+      } | null;
+    };
+    if ("wellness_profile" in body) {
+      await updateClientWellnessProfile(id, body.wellness_profile ?? null);
+    } else {
+      return NextResponse.json(
+        { error: "wellness_profile required" },
+        { status: 400 },
+      );
+    }
+    return NextResponse.json({ ok: true });
+  } catch (err) {
+    console.error("client PATCH error:", err);
+    return NextResponse.json(
+      { error: err instanceof Error ? err.message : String(err) },
+      { status: 500 },
+    );
+  }
+}
 
 export async function GET(
   _req: Request,

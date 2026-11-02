@@ -34,8 +34,14 @@ import {
 import {
   CLIENT_STACKS,
   EATING_PATTERNS,
+  HORMONAL_STAGES,
+  EXERCISE_STATUSES,
+  DEFAULT_PROFILE,
   suggestProducts,
+  type WellnessProfile,
   type EatingPattern,
+  type HormonalStage,
+  type ExerciseStatus,
 } from "@/lib/clientStacks";
 
 function fmtDate(iso: string): string {
@@ -64,7 +70,7 @@ function PlanInner() {
   const [productsGiven, setProductsGiven] = useState<string[]>([]);
   const [scans, setScans] = useState<ScanRow[]>([]);
   const [selectedGoal, setSelectedGoal] = useState<string>("");
-  const [eatingPattern, setEatingPattern] = useState<EatingPattern>("balanced");
+  const [profile, setProfile] = useState<WellnessProfile>(DEFAULT_PROFILE);
   const [error, setError] = useState<string | null>(null);
   const [loaded, setLoaded] = useState(false);
 
@@ -108,8 +114,9 @@ function PlanInner() {
         setCoachNotes(compareScan.coach_notes ?? "");
         setProductsGiven(compareScan.products_given ?? []);
         setSelectedGoal(compareScan.stack_selection?.goal ?? "");
-        setEatingPattern(
-          (compareScan.stack_selection?.eating as EatingPattern) ?? "balanced",
+        setProfile(
+          (data.client.wellness_profile as WellnessProfile | null) ??
+            DEFAULT_PROFILE,
         );
 
         const sc =
@@ -168,14 +175,25 @@ function PlanInner() {
     });
   }
 
-  function saveStackSelection(goal: string, eating: EatingPattern) {
+  function saveStackSelection(goal: string) {
     if (!compareScanId) return;
     void fetch(`/api/scans/${compareScanId}`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        stack_selection: goal ? { goal, eating } : null,
-      }),
+      body: JSON.stringify({ stack_selection: goal ? { goal } : null }),
+    });
+  }
+
+  // Profile saves to the CLIENT (set once, carries across visits).
+  function updateProfile(patch: Partial<WellnessProfile>) {
+    setProfile((prev) => {
+      const next = { ...prev, ...patch };
+      void fetch(`/api/clients/${clientId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ wellness_profile: next }),
+      });
+      return next;
     });
   }
 
@@ -221,7 +239,7 @@ function PlanInner() {
   }
 
   const suggestion = selectedGoal
-    ? suggestProducts(selectedGoal, eatingPattern)
+    ? suggestProducts(selectedGoal, profile)
     : null;
 
   return (
@@ -387,7 +405,7 @@ function PlanInner() {
                   value={selectedGoal}
                   onChange={(e) => {
                     setSelectedGoal(e.target.value);
-                    saveStackSelection(e.target.value, eatingPattern);
+                    saveStackSelection(e.target.value);
                   }}
                   className="w-full bg-[var(--solae-bg)] border border-[var(--solae-border)] rounded-lg px-4 py-2.5 text-sm text-[var(--solae-text)] focus:outline-none focus:border-[var(--solae-gold-dim)]"
                 >
@@ -404,15 +422,53 @@ function PlanInner() {
                   Eating Pattern
                 </label>
                 <select
-                  value={eatingPattern}
-                  onChange={(e) => {
-                    const v = e.target.value as EatingPattern;
-                    setEatingPattern(v);
-                    saveStackSelection(selectedGoal, v);
-                  }}
+                  value={profile.eating}
+                  onChange={(e) =>
+                    updateProfile({ eating: e.target.value as EatingPattern })
+                  }
                   className="w-full bg-[var(--solae-bg)] border border-[var(--solae-border)] rounded-lg px-4 py-2.5 text-sm text-[var(--solae-text)] focus:outline-none focus:border-[var(--solae-gold-dim)]"
                 >
                   {EATING_PATTERNS.map((p) => (
+                    <option key={p.value} value={p.value}>
+                      {p.label}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label className="block text-[10px] tracking-widest uppercase text-[var(--solae-text-faint)] mb-2">
+                  Hormonal Stage
+                </label>
+                <select
+                  value={profile.hormonal}
+                  onChange={(e) =>
+                    updateProfile({
+                      hormonal: e.target.value as HormonalStage,
+                    })
+                  }
+                  className="w-full bg-[var(--solae-bg)] border border-[var(--solae-border)] rounded-lg px-4 py-2.5 text-sm text-[var(--solae-text)] focus:outline-none focus:border-[var(--solae-gold-dim)]"
+                >
+                  {HORMONAL_STAGES.map((p) => (
+                    <option key={p.value} value={p.value}>
+                      {p.label}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label className="block text-[10px] tracking-widest uppercase text-[var(--solae-text-faint)] mb-2">
+                  Exercise
+                </label>
+                <select
+                  value={profile.exercise}
+                  onChange={(e) =>
+                    updateProfile({
+                      exercise: e.target.value as ExerciseStatus,
+                    })
+                  }
+                  className="w-full bg-[var(--solae-bg)] border border-[var(--solae-border)] rounded-lg px-4 py-2.5 text-sm text-[var(--solae-text)] focus:outline-none focus:border-[var(--solae-gold-dim)]"
+                >
+                  {EXERCISE_STATUSES.map((p) => (
                     <option key={p.value} value={p.value}>
                       {p.label}
                     </option>

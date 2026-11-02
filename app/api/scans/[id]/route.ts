@@ -16,7 +16,7 @@ export async function PATCH(
       notes?: string;
       coach_notes?: string;
       products_given?: string[];
-      stack_selection?: { goal: string; eating: string } | null;
+      stack_selection?: { goal: string; eating?: string } | null;
     };
 
     if (typeof body.notes === "string") {

@@ -148,6 +148,39 @@ export const EATING_PATTERNS: { value: EatingPattern; label: string }[] = [
   { value: "unknown", label: "Unknown" },
 ];
 
+export type HormonalStage =
+  | "premenopause"
+  | "perimenopause"
+  | "menopause"
+  | "na"
+  | "unknown";
+export type ExerciseStatus = "sedentary" | "light" | "regular" | "strength";
+
+export const HORMONAL_STAGES: { value: HormonalStage; label: string }[] = [
+  { value: "na", label: "Not applicable" },
+  { value: "premenopause", label: "Premenopause" },
+  { value: "perimenopause", label: "Perimenopause" },
+  { value: "menopause", label: "Menopause / Postmenopause" },
+  { value: "unknown", label: "Unknown" },
+];
+export const EXERCISE_STATUSES: { value: ExerciseStatus; label: string }[] = [
+  { value: "sedentary", label: "Sedentary" },
+  { value: "light", label: "Lightly active" },
+  { value: "regular", label: "Regular exercise" },
+  { value: "strength", label: "Strength training" },
+];
+
+export interface WellnessProfile {
+  eating: EatingPattern;
+  hormonal: HormonalStage;
+  exercise: ExerciseStatus;
+}
+export const DEFAULT_PROFILE: WellnessProfile = {
+  eating: "balanced",
+  hormonal: "na",
+  exercise: "light",
+};
+
 export interface SuggestedProduct {
   name: string;
   role: ProductRole;
@@ -161,15 +194,8 @@ export interface StackSuggestion {
   note?: string;
 }
 
-/**
- * Suggest products for a goal, refined by eating pattern. Weight & Metabolism is
- * eating-pattern aware: a cravings client and a barely-eating client get
- * different stacks. Nothing here is auto-approved — the practitioner reviews.
- */
-export function suggestProducts(
-  goalId: string,
-  eating: EatingPattern,
-): StackSuggestion {
+/** Base suggestion from goal + eating pattern (before profile add-ons). */
+function baseSuggestion(goalId: string, eating: EatingPattern): StackSuggestion {
   if (goalId === "weight-metabolism") {
     if (eating === "low-intake") {
       return {
@@ -244,4 +270,57 @@ export function suggestProducts(
       reason: productSupports(name),
     })),
   };
+}
+
+/**
+ * Suggest products for a goal, refined by the client's full wellness profile:
+ * eating pattern drives the core stack; hormonal stage and exercise add
+ * supportive layers. Nothing is auto-approved — the practitioner reviews.
+ */
+export function suggestProducts(
+  goalId: string,
+  profile: WellnessProfile,
+): StackSuggestion {
+  const base = baseSuggestion(goalId, profile.eating);
+  const products = [...base.products];
+  const notes: string[] = base.note ? [base.note] : [];
+  const has = (n: string) => products.some((p) => p.name === n);
+
+  // Menopause support — nutrition/muscle/bone focus, no hormone-treatment claims.
+  if (profile.hormonal === "perimenopause" || profile.hormonal === "menopause") {
+    if (!has("VitalPro"))
+      products.push({
+        name: "VitalPro",
+        role: "optional",
+        reason: "Protein for muscle maintenance (menopause support).",
+      });
+    if (!has("V-Omega 3"))
+      products.push({
+        name: "V-Omega 3",
+        role: "optional",
+        reason: "Omega-3 nutritional support where appropriate (menopause support).",
+      });
+    notes.push(
+      "Menopause: prioritize protein, muscle and bone maintenance, omega-3 nutrition, and sleep — no hormone-treatment claims.",
+    );
+  }
+
+  // Exercise layer.
+  if (profile.exercise === "regular" || profile.exercise === "strength") {
+    if (profile.exercise === "strength" && !has("VitalPro"))
+      products.push({
+        name: "VitalPro",
+        role: "optional",
+        reason: "Protein for muscle support and recovery.",
+      });
+    notes.push(
+      "Active: emphasize adequate protein, fueling, hydration, and recovery.",
+    );
+  } else if (profile.exercise === "sedentary") {
+    notes.push(
+      "Sedentary: emphasize gradual movement, nourishment, and sustainable habits — no stimulants or thermogenics by default.",
+    );
+  }
+
+  return { products, note: notes.length ? notes.join(" ") : undefined };
 }

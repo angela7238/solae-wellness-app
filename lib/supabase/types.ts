@@ -26,6 +26,8 @@ export interface ClientRow {
   } | null;
   goals: string | null;
   notes: string | null;
+  /** Standing wellness profile (eating pattern, hormonal stage, exercise) — set once, reused per visit. */
+  wellness_profile: { eating: string; hormonal: string; exercise: string } | null;
   created_at: string;
 }
 
@@ -38,8 +40,8 @@ export interface ScanRow {
   coach_notes: string | null;
   /** Product names the coach checked off as given to the client at this visit. */
   products_given: string[] | null;
-  /** Wellness goal + profile filters chosen for this visit's plan. */
-  stack_selection: { goal: string; eating: string } | null;
+  /** Wellness goal chosen for this visit's plan (profile lives on the client). */
+  stack_selection: { goal: string; eating?: string } | null;
   uploaded_at: string;
 }
 

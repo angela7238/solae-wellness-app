@@ -219,16 +219,29 @@ export async function updateScanProductsGiven(
   if (error) throw error;
 }
 
-/** Save the wellness goal + profile filters chosen for this visit's plan. */
+/** Save the wellness goal chosen for this visit's plan. */
 export async function updateScanStackSelection(
   scanId: string,
-  stackSelection: { goal: string; eating: string } | null,
+  stackSelection: { goal: string; eating?: string } | null,
 ): Promise<void> {
   const supabase = createServerSupabase();
   const { error } = await supabase
     .from("scans")
     .update({ stack_selection: stackSelection })
     .eq("id", scanId);
+  if (error) throw error;
+}
+
+/** Save the client's standing wellness profile (set once, reused per visit). */
+export async function updateClientWellnessProfile(
+  clientId: string,
+  profile: { eating: string; hormonal: string; exercise: string } | null,
+): Promise<void> {
+  const supabase = createServerSupabase();
+  const { error } = await supabase
+    .from("clients")
+    .update({ wellness_profile: profile })
+    .eq("id", clientId);
   if (error) throw error;
 }
 
