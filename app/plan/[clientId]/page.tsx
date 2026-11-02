@@ -240,6 +240,30 @@ function PlanInner() {
         </div>
       )}
 
+      {/* Your daily routine — lead with the client's actionable plan */}
+      <Section
+        icon={<Sun className="w-6 h-6 text-gold" />}
+        title="Your Daily Routine"
+      >
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+          <RoutineCard
+            icon={<Sun className="w-5 h-5" />}
+            time="Morning"
+            text={recommendation.dailyRoutine.morning}
+          />
+          <RoutineCard
+            icon={<Coffee className="w-5 h-5" />}
+            time="Midday"
+            text={recommendation.dailyRoutine.afternoon}
+          />
+          <RoutineCard
+            icon={<Moon className="w-5 h-5" />}
+            time="Evening"
+            text={recommendation.dailyRoutine.evening}
+          />
+        </div>
+      </Section>
+
       {/* Phase rationale */}
       <Section icon={<Sparkles className="w-6 h-6 text-gold" />} title="Your Current Phase">
         <div className="bg-[var(--solae-bg-card)] border border-[var(--solae-border)] rounded-xl p-6">
@@ -374,30 +398,6 @@ function PlanInner() {
           </div>
         </Section>
       )}
-
-      {/* Daily routine */}
-      <Section
-        icon={<Sun className="w-6 h-6 text-gold" />}
-        title="30-Day Daily Routine"
-      >
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-          <RoutineCard
-            icon={<Sun className="w-5 h-5" />}
-            time="Morning"
-            text={recommendation.dailyRoutine.morning}
-          />
-          <RoutineCard
-            icon={<Coffee className="w-5 h-5" />}
-            time="Afternoon"
-            text={recommendation.dailyRoutine.afternoon}
-          />
-          <RoutineCard
-            icon={<Moon className="w-5 h-5" />}
-            time="Evening"
-            text={recommendation.dailyRoutine.evening}
-          />
-        </div>
-      </Section>
 
       {/* Expected results */}
       <Section
