@@ -40,6 +40,16 @@ export default function RootLayout({
           <main className="flex-1 max-w-7xl w-full mx-auto px-6 py-8">
             {children}
           </main>
+          <footer className="max-w-7xl w-full mx-auto px-6 py-6 border-t border-[var(--solae-border-subtle)]">
+            <p className="text-[var(--solae-text-faint)] text-[11px] leading-relaxed">
+              Solae Longevity &amp; Soul Studio provides wellness and educational
+              support only. Angela Holter is not a physician and does not
+              diagnose, treat, or prescribe. Wellness scan results are
+              proprietary wellness-tracking scores from a non-diagnostic device —
+              not medical measurements or diagnoses. For educational and
+              informational purposes only.
+            </p>
+          </footer>
         </div>
       </body>
     </html>

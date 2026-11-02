@@ -301,6 +301,10 @@ function DashboardInner() {
         sinceLast={sinceLast}
       />
 
+      <div className="text-[var(--solae-text-faint)] text-[11px] italic -mt-1 mb-6">
+        Proprietary wellness-tracking scores — not medical measurements or diagnostic.
+      </div>
+
       <HealingPhase current={c.currentPhase} secondary={c.secondaryPhase} />
 
       {compareParsed && (
