@@ -20,10 +20,7 @@ import { HealingPhase } from "@/components/dashboard/HealingPhase";
 import { TransformationSnapshot } from "@/components/dashboard/TransformationSnapshot";
 import { ScanNotes } from "@/components/dashboard/ScanNotes";
 import { SystemsGrid } from "@/components/dashboard/SystemsGrid";
-import {
-  StandoutImprovements,
-  TopImproved,
-} from "@/components/dashboard/StandoutImprovements";
+import { TopImproved } from "@/components/dashboard/StandoutImprovements";
 import { AreasNeedingAttention } from "@/components/dashboard/AreasNeedingAttention";
 import { WellnessRadar } from "@/components/dashboard/WellnessRadar";
 import { TimelineTrends } from "@/components/dashboard/TimelineTrends";
@@ -325,12 +322,12 @@ function DashboardInner() {
 
       <SystemsGrid systems={c.systems} singleScan={single} />
 
-      {c.standouts.length > 0 && <StandoutImprovements items={c.standouts} />}
-
+      {/* Client-friendly: just the top 5 improvements + top 5 areas to watch,
+          rather than long lists that overwhelm. */}
       {c.topImproved.length > 0 && <TopImproved items={c.topImproved} />}
 
       {c.needsAttention.length > 0 && (
-        <AreasNeedingAttention items={c.needsAttention} />
+        <AreasNeedingAttention items={c.needsAttention.slice(0, 5)} />
       )}
 
       {!single && radarData && radarData.length > 0 && (
