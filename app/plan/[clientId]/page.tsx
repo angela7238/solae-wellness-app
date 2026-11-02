@@ -229,16 +229,30 @@ function PlanInner() {
         </div>
       </header>
 
-      {/* Coach Notes — printed on the FIRST page so clients see them (the
-          editable copy stays near the bottom on screen). */}
-      {coachNotes && (
-        <div className="hidden print:block mb-8 pb-6 border-b border-[var(--solae-border-subtle)]">
-          <h2 className="font-display text-2xl text-gold mb-3">Coach Notes</h2>
-          <div className="whitespace-pre-wrap text-sm text-[var(--solae-text)]">
-            {coachNotes}
+      {/* Coach Notes — at the TOP of the report: editable on screen, and prints
+          here on the first page so clients see it. One section, both jobs. */}
+      <Section
+        icon={<ListChecks className="w-6 h-6 text-gold" />}
+        title="Coach Notes"
+      >
+        <div className="relative">
+          <textarea
+            className="w-full bg-[var(--solae-bg-card)] border border-[var(--solae-border-subtle)] rounded-lg p-5 min-h-32 text-sm text-[var(--solae-text)] resize-y focus:outline-none focus:border-[var(--solae-gold-dim)] print:hidden"
+            placeholder="Type your coach notes for this client here…"
+            value={coachNotes}
+            onChange={(e) => setCoachNotes(e.target.value)}
+            onBlur={(e) => void saveCoachNotes(e.target.value)}
+          />
+          {notesSaveState !== "idle" && (
+            <div className="absolute bottom-3 right-3 text-[10px] text-[var(--solae-text-faint)] print:hidden">
+              {notesSaveState === "saving" ? "Saving…" : "Saved ✓"}
+            </div>
+          )}
+          <div className="hidden print:block whitespace-pre-wrap text-sm text-[var(--solae-text)] bg-[var(--solae-bg-card)] border border-[var(--solae-border-subtle)] rounded-lg p-5 min-h-32">
+            {coachNotes || ""}
           </div>
         </div>
-      )}
+      </Section>
 
       {/* Your daily routine — lead with the client's actionable plan */}
       <Section
@@ -416,32 +430,6 @@ function PlanInner() {
           ))}
         </ul>
       </Section>
-
-      {/* Coach notes — editable on screen; prints at the TOP of the report instead (see header). */}
-      <div className="no-print">
-      <Section
-        icon={<ListChecks className="w-6 h-6 text-gold" />}
-        title="Coach Notes"
-      >
-        <div className="relative">
-          <textarea
-            className="w-full bg-[var(--solae-bg-card)] border border-[var(--solae-border-subtle)] rounded-lg p-5 min-h-32 text-sm text-[var(--solae-text)] resize-y focus:outline-none focus:border-[var(--solae-gold-dim)] print:hidden"
-            placeholder="Type your coach notes for this client here…"
-            value={coachNotes}
-            onChange={(e) => setCoachNotes(e.target.value)}
-            onBlur={(e) => void saveCoachNotes(e.target.value)}
-          />
-          {notesSaveState !== "idle" && (
-            <div className="absolute bottom-3 right-3 text-[10px] text-[var(--solae-text-faint)] print:hidden">
-              {notesSaveState === "saving" ? "Saving…" : "Saved ✓"}
-            </div>
-          )}
-          <div className="hidden print:block whitespace-pre-wrap text-sm text-[var(--solae-text)] bg-[var(--solae-bg-card)] border border-[var(--solae-border-subtle)] rounded-lg p-5 min-h-32">
-            {coachNotes || ""}
-          </div>
-        </div>
-      </Section>
-      </div>
 
       {/* Disclaimer */}
       <Section

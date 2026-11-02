@@ -20,7 +20,10 @@ import { HealingPhase } from "@/components/dashboard/HealingPhase";
 import { TransformationSnapshot } from "@/components/dashboard/TransformationSnapshot";
 import { ScanNotes } from "@/components/dashboard/ScanNotes";
 import { SystemsGrid } from "@/components/dashboard/SystemsGrid";
-import { TopImproved } from "@/components/dashboard/StandoutImprovements";
+import {
+  StandoutImprovements,
+  TopImproved,
+} from "@/components/dashboard/StandoutImprovements";
 import { AreasNeedingAttention } from "@/components/dashboard/AreasNeedingAttention";
 import { WellnessRadar } from "@/components/dashboard/WellnessRadar";
 import { TimelineTrends } from "@/components/dashboard/TimelineTrends";
@@ -322,8 +325,10 @@ function DashboardInner() {
 
       <SystemsGrid systems={c.systems} singleScan={single} />
 
-      {/* Client-friendly: just the top 5 improvements + top 5 areas to watch,
-          rather than long lists that overwhelm. */}
+      {/* Keep the full Standout Improvements list (Angela likes the detail,
+          e.g. Consciousness/guilt markers), but cap Areas to Watch at 5. */}
+      {c.standouts.length > 0 && <StandoutImprovements items={c.standouts} />}
+
       {c.topImproved.length > 0 && <TopImproved items={c.topImproved} />}
 
       {c.needsAttention.length > 0 && (
